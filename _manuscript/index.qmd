@@ -1,0 +1,391 @@
+---
+title: "Qualtrics Data Cleaning Demo"
+author: 
+  - name: "Rachel Rapier"
+    affiliation: "University of Wisconsin, Madison"
+date: "2026-07-08"
+abstract: |
+  This manuscript cleans the data set and analyzes the relationship between enjoyment of social interaction and use of public transportation. 
+jupyter: python3
+echo: TRUE
+
+---
+
+
+## Standard Imports & Loacking Data
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from IPython.display import display, Markdown
+
+sns.set_context('talk')
+```
+
+
+
+# Read in the Data
+
+```{python}
+dataA = pd.read_csv('data_orig/PRCAProlificExport_FileA.csv')
+dataB = pd.read_csv('data_orig/PRCAProlificExport_FileB.csv')
+dataC = pd.read_csv('data_orig/PRCAQualtricsExport_FileC.csv')
+
+questions = pd.read_csv('data_dictionary.csv')
+
+
+# rename the columns to variable_name and question
+questions.rename(columns={questions.columns[0]: 'variable_name', questions.columns[1]: 'question'}, inplace=True)
+
+```
+
+```{python}
+#| label: view-questions
+#| echo: true
+# with pd.option_context('display.max_colwidth', None):
+#     display(questions.transpose())
+
+Markdown(
+  questions.transpose().to_markdown()
+)
+
+```
+
+
+
+## Merge Files
+```{python}
+#| echo: true
+# First merge dataB with dataA (both have Participant id column)
+data_all = pd.merge(dataA, dataB, how = 'outer')
+
+# Then merge the result with dataC (Q0 in dataC contains Participant id that matches Participant id in dataA/dataB)
+data_all = pd.merge(data_all, dataC, left_on='Participant id', right_on='Q0', how='right')
+
+#create an indexing column because participant id a long string of numbers and we want to simplify it. This index will be used as the participant id. Then move it to the first column
+
+data_all['p_id'] = data_all.index
+data_all = data_all[['p_id'] + [col for col in data_all.columns if col != 'p_id']]
+
+# Display the merged dataframe info
+print(f"Merged dataframe shape: {data_all.shape}")
+print(f"Columns in merged dataframe: {data_all.columns.tolist()}")
+print(data_all.head())
+```
+
+# Data Cleaning & Prep
+
+
+## Response mapping to numeric values
+
+```{python}
+#| label: response-mapping
+
+df = data_all
+#make all responses lowercase
+df = df.apply(lambda col: col.str.lower() if col.name.startswith('Q') else col)
+
+# print("Unique responses in columns Q2-Q18:")
+# for col in df.columns:
+#     if col.startswith('Q'):
+#       if not col.startswith('Q0'):
+#         print(f"{col}: {df[col].dropna().unique()}")
+
+# df["Q1"].value_counts()
+
+# Show value counts for all Q columns
+# for col in df.columns:
+#     if col.startswith('Q') and not col.startswith('Q0'):
+#         print(f"\n{col} value counts:")
+#         print(df[col].value_counts(dropna=False))
+
+
+# Find columns with identical unique values
+from collections import defaultdict
+
+# Get unique values for each Q column (excluding Q0)
+q_unique_vals = {}
+for col in df.columns:
+    if col.startswith('Q') and not col.startswith('Q0'):
+        unique_vals = tuple(sorted(df[col].dropna().unique()))
+        q_unique_vals[col] = unique_vals
+
+# Group columns by their unique values
+value_groups = defaultdict(list)
+for col, vals in q_unique_vals.items():
+    value_groups[vals].append(col)
+
+# Display groups
+print("Columns with identical unique values:")
+for i, (vals, cols) in enumerate(value_groups.items(), 1):
+    print(f"\nGroup {i} ({len(cols)} columns): {cols}")
+    print(f"  Values: {vals}")
+
+
+# Create mapping dictionaries for each group
+group1_mapping = {
+    'strongly disagree': 1,
+    'somewhat disagree': 2,
+    'neither agree nor disagree': 3,
+    'somewhat agree': 4,
+    'strongly agree': 5
+}
+
+group2_mapping = {
+  '0-1 days a month': 1, 
+  '2-4 days a month': 2, 
+  '4-8 days a month': 3, 
+  '8 or more days a month': 4, 
+  'never': 0
+}
+
+group3_mapping = {
+  '1-2 rides in a typical day': 1, 
+  '3-4 rides in a typical day': 2, 
+  '5-6 rides in a typical day': 3, 
+  '7 or more rides in a typical day': 4
+}
+
+group4_mapping = {
+  '0-1 days a month': 1, 
+  '2-4 days a month': 2, 
+  '4-8 days a month': 3, 
+  '8 or more days a month': 4, 
+  'never': 0
+}
+
+# Create numeric columns for each response from all group mappings
+
+for col in df.columns:
+    if col in value_groups[tuple(sorted(group1_mapping.keys()))]:
+        df[col + '_numeric'] = df[col].map(group1_mapping)
+
+# Create numeric columns for each response from group2_mapping
+for col in df.columns:
+    if col in value_groups[tuple(sorted(group2_mapping.keys()))]:
+        df[col + '_numeric'] = df[col].map(group2_mapping)
+
+for col in df.columns:
+    if col in value_groups[tuple(sorted(group3_mapping.keys()))]:
+        df[col + '_numeric'] = df[col].map(group3_mapping)
+
+for col in df.columns:
+    if col in value_groups[tuple(sorted(group4_mapping.keys()))]:
+        df[col + '_numeric'] = df[col].map(group4_mapping)
+
+#reverse score Q2, Q4, Q6, Q13, Q15, Q17
+df['Q2_numeric'] = 6 - df['Q2_numeric']
+df['Q4_numeric'] = 6 - df['Q4_numeric']
+df['Q6_numeric'] = 6 - df['Q6_numeric']
+df['Q13_numeric'] = 6 - df['Q13_numeric']
+df['Q15_numeric'] = 6 - df['Q15_numeric']
+df['Q17_numeric'] = 6 - df['Q17_numeric']
+
+
+# Show the new numeric columns
+numeric_cols = [col for col in df.columns if col.endswith('_numeric')]
+print(f"Created {len(numeric_cols)} numeric columns:")
+print(numeric_cols[:10])  # Show first 10
+```
+
+## Create new Columns group_score, convo_score, and total_score
+
+```{python}
+#create a column in df total_group_null that is the sum of the nan values for questions q1:q6
+df['total_group_null'] = df[['Q1_numeric', 'Q2_numeric', 'Q3_numeric', 'Q4_numeric', 'Q5_numeric', 'Q6_numeric']].isnull().sum(axis=1)
+
+#do the same thing except call it total_convo_null that is the sum of the nan values for question q13:q18
+df['total_convo_null'] = df[['Q13_numeric', 'Q14_numeric', 'Q15_numeric', 'Q16_numeric', 'Q17_numeric', 'Q18_numeric']].isnull().sum(axis=1)
+
+df = df[(df['total_group_null'] != 6) & (df['total_convo_null'] != 6)]
+
+# After all of that I now want to impute either the median or the mode of the question in group 1 and 2 that the participant did not answer. 
+
+df = df.fillna(df[['Q1_numeric', 'Q2_numeric', 'Q3_numeric', 'Q4_numeric', 'Q5_numeric', 'Q6_numeric', 'Q13_numeric', 'Q14_numeric', 'Q15_numeric', 'Q16_numeric', 'Q17_numeric', 'Q18_numeric']].median())
+
+
+print(df[['total_group_null', 'total_convo_null']])
+
+#create a new column in df called group_score that is the sum of q1-q6
+df['group_score'] = df[['Q1_numeric', 'Q2_numeric', 'Q3_numeric', 'Q4_numeric', 'Q5_numeric', 'Q6_numeric']].sum(axis=1, skipna=False)
+
+#create a new column in df called convo_score that is the sum of qq13-q18
+df['convo_score'] = df[['Q13_numeric', 'Q14_numeric', 'Q15_numeric', 'Q16_numeric', 'Q17_numeric', 'Q18_numeric']].sum(axis=1, skipna=False)
+
+#create new column in df called total scores
+df['total_score'] = df['group_score'] + df['convo_score']
+df[['group_score', 'convo_score', 'total_score']].head()
+
+#create a numeric sex column
+df['sex_numeric'] = df['Sex'].map({'Male': 0, 'Female': 1})
+
+#rename Q26 - Q29 to be more descriptive
+df = df.rename(columns={
+  'Q26_numeric': 'public_trans_per_month', 
+  'Q27_numeric': 'public_trans_reg_day', 
+  'Q28_numeric': 'rideshare_per_month', 
+  'Q29_numeric': 'rideshare_reg_day'})
+```
+
+## Remove columns that I am not interested in: 
+
+```{python}
+df_before_drop = df
+
+df = df.drop(columns=['EndDate', 'StartDate', 'LocationLatitude', 'LocationLongitude', 'Started at', 'Completed at', 'ResponseId', 'Participant id', 'Submission id'])
+
+
+```
+
+
+
+```{python}
+#drop all columns that start with Q 
+df = df.drop(columns=[col for col in df.columns if col.startswith('Q')])
+
+```
+
+
+## Check for unreasonable values in dataset
+
+```{python}
+#| label: tbl-describe_dataframe
+#| tbl-cap: "Descriptive statistics for the cleaned dataset"
+# Check for any unreasonable values in the dataset
+
+# Create a mapping of variable names to human-readable descriptions
+variable_descriptions = {
+    'p_id': 'Participant ID',
+    'group_score': 'Group Discussion Score (Q1-Q6)',
+    'convo_score': 'Conversation Score (Q13-Q18)',
+    'total_score': 'Total Social Interaction Score',
+    'sex_numeric': 'Sex (0=Male, 1=Female)',
+    'public_trans_per_month': 'Public Transportation Days per Month',
+    'public_trans_reg_day': 'Public Transportation Rides per Typical Day',
+    'rideshare_per_month': 'Rideshare Days per Month',
+    'rideshare_reg_day': 'Rideshare Rides per Typical Day',
+    'total_group_null': 'Missing Group Discussion Responses',
+    'total_convo_null': 'Missing Conversation Responses',
+    'Duration (in seconds)': 'Survey Duration (seconds)',
+    'Time taken': 'Time Taken'
+}
+
+# Get the descriptive statistics and transpose
+desc_stats = df.describe().transpose().apply(lambda x: round(x, 2))
+
+# Add human-readable descriptions as a new column
+desc_stats['variable_description'] = desc_stats.index.map(variable_descriptions)
+
+# Drop the existing index and set the new column as the index
+desc_stats = desc_stats.reset_index(drop=True).set_index('variable_description')
+
+desc_stats
+```
+
+```{python}
+
+for col in ['Country of residence', 'Sex', 'Employment status']:
+    print(df[col].value_counts())
+```
+
+## Filter out participants with duration in seconds or time taken < 30 seconds
+
+```{python}
+# Filter out participants with duration in seconds or time taken < 30 seconds
+# print( df[df['Duration (in seconds)']< 30])
+
+df = df[df['Duration (in seconds)']> 30]
+
+df = df.drop(columns=['Duration (in seconds)', 'Time taken'])
+
+print(df.describe())
+
+print(df.groupby('Employment status')[['public_trans_per_month', 'rideshare_per_month', 'public_trans_reg_day', 'rideshare_reg_day', 'rideshare_reg_day']].describe().T)
+
+for col in ['Country of residence', 'Sex', 'Employment status']:
+    print(df[col].value_counts())
+```
+
+## Create histograms for all numeric columns except p_id and bar plots with the value counts for categorical variables
+
+```{python}
+
+#| label: fig-histograms
+#| fig-cap: "Histograms of numeric variables"
+
+# Drop p_id column
+df_plot = df.drop(columns=['p_id'])
+
+df_plot.hist(figsize=(15, 10))
+plt.show()
+```
+
+```{python}
+#| label: fig-barplots
+#| fig-cap: "Bar plots of categorical variables"
+#| fig-subcap: ["Country of residence", "Sex", "Employment status"]
+
+# Create bar plots for categorical variables there should be 3 barplots 
+
+for col in ['Country of residence', 'Sex', 'Employment status']:
+    df[col].value_counts().plot(kind='bar')
+    plt.show()
+
+```
+
+```{python}
+#print out the rows in df that have null values in any of the columns
+print(df[df.isnull().any(axis=1)])
+print(df[df.isnull().any(axis=1)].shape)
+
+
+
+```
+
+```{python}
+
+
+
+```
+
+Hypothesis: 
+I believe full time employees have a lower ratio of public_trans_per_month to rideshare_per_month than part time and other types of employment status. full time employees should generally have a higher number of transportation days than someone that is part time or other. 
+
+People with access to a vehicle will have a lower ratio of public_trans_per_month to rideshare_per_month than those without access to a vehicle. The effect of employment status on transportation choices may be moderated by access to a vehicle, such that fulltime employment status with access to a vehicle will have a lower ratio of public_trans_per_month to rideshare_per_month than parttime employment status with access to a vehicle.
+
+```{python}
+
+
+
+```
+
+# Introduction
+
+This is the introduction section. Add your content here.
+
+# Methods
+
+## Participants
+
+Describe the participants in your study.
+
+## Materials
+
+Describe the materials used in your study.
+
+## Procedure
+
+Describe the procedure of your study.
+
+# Results
+
+Add your results here.
+
+# Discussion
+
+Add your discussion here.
+
+# References
+

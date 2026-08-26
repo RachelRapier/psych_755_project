@@ -1,0 +1,31 @@
+project:
+  type: manuscript
+
+manuscript:
+  article: index.qmd
+  
+
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
+    code-tools: true
+  pdf:
+    toc: true
+    number-sections: true
+    latex-engine: pdflatex
+  docx:
+    reference-doc: reference-doc.docx
+
+metadata:
+  author: "Rachel Rapier"
+  date: "July 8, 2026"
+  title: "Psych 755 Project"
+  
+bibliography: references.bib
+
+execute:
+  echo: true
+  warning: false
+  message: false

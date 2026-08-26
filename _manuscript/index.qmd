@@ -1,34 +1,46 @@
 ---
-title: "Qualtrics Data Cleaning Demo"
+title: "Transportation Frequency and Employment Status"
 author: 
   - name: "Rachel Rapier"
     affiliation: "University of Wisconsin, Madison"
-date: "2026-07-08"
+date: "2025-10-15"
 abstract: |
-  This manuscript cleans the data set and analyzes the relationship between enjoyment of social interaction and use of public transportation. 
+  This manuscript discusses the relationship between public transportation and rideshare frequency based on employment status and whether the individual had access to a vehicle.
 jupyter: python3
+bibliography: references.bib
 echo: TRUE
-
 ---
 
+# Introduction: 
 
-## Standard Imports & Loacking Data
+The type of transportation an individual chooses to use is influenced by a variety of factors, including employment status and access to a vehicle. 
+
+A full-time employee working in the office will have to be in the office 20-22 days per month, while part-time employees, contract employees, and retirees will not need to commute as frequently. Because full time employees are required to be somewhere more days of the week than other types of employment, I hypothesize that the sum of their total public transportation days per month and rideshare days per month will be higher than those who are not full-time employed. I also hypothesize that access to a vehicle will decrease the total number of public transportaion and rideshare rides. I hypothesize that access to a vehicle will have a stronger effect on the number of public transportation and rideshare rides for individuals not employed full-time. 
+
+Full time employees may have more disposable income to afford a vehicle. Others may rely sol
+
+Transportation use and frequency varies based on num between full-time employed individuals and those who are not employed full-time. In this study, I examine public transportation and rideshare usage patterns between these two groups. 
+
+In addition, having access to a vehicle can impact transportation choices, and I hypothesize that access to a vehicle will decrease the # of days per month that individuals use public transportation or rideshare services.
+
+# Data and Methods
+
+### Standard Package Imports and Data Loading
 
 ```{python}
+#| label: load-packages-data
+#| 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import display, Markdown
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from collections import defaultdict
 
 sns.set_context('talk')
-```
 
-
-
-# Read in the Data
-
-```{python}
 dataA = pd.read_csv('data_orig/PRCAProlificExport_FileA.csv')
 dataB = pd.read_csv('data_orig/PRCAProlificExport_FileB.csv')
 dataC = pd.read_csv('data_orig/PRCAQualtricsExport_FileC.csv')
@@ -39,71 +51,50 @@ questions = pd.read_csv('data_dictionary.csv')
 # rename the columns to variable_name and question
 questions.rename(columns={questions.columns[0]: 'variable_name', questions.columns[1]: 'question'}, inplace=True)
 
-```
-
-```{python}
-#| label: view-questions
-#| echo: true
-# with pd.option_context('display.max_colwidth', None):
-#     display(questions.transpose())
-
-Markdown(
-  questions.transpose().to_markdown()
-)
-
-```
-
-
-
-## Merge Files
-```{python}
-#| echo: true
-# First merge dataB with dataA (both have Participant id column)
+# merge dataframes
 data_all = pd.merge(dataA, dataB, how = 'outer')
 
 # Then merge the result with dataC (Q0 in dataC contains Participant id that matches Participant id in dataA/dataB)
 data_all = pd.merge(data_all, dataC, left_on='Participant id', right_on='Q0', how='right')
+
+```
+
+
+### Data Cleaning
+
+I created a new particpant ID as an index that was simplified from the original dataset. This was done to make the data easier to work with and to avoid issues with the long string of numbers in the original participant ID.
+
+I then dropped the columns in the data set that I was not using for my analysis.
+
+There were 2 participants that completed the survey in less than 30 seconds, so I dropped them from the dataset because their values would not be accurate.
+
+
+```{python}
+#| label: cleaning-data
 
 #create an indexing column because participant id a long string of numbers and we want to simplify it. This index will be used as the participant id. Then move it to the first column
 
 data_all['p_id'] = data_all.index
 data_all = data_all[['p_id'] + [col for col in data_all.columns if col != 'p_id']]
 
-# Display the merged dataframe info
-print(f"Merged dataframe shape: {data_all.shape}")
-print(f"Columns in merged dataframe: {data_all.columns.tolist()}")
-print(data_all.head())
+#drop columns that are not needed   
+df = data_all.drop(columns=['EndDate', 'StartDate', 'LocationLatitude', 'LocationLongitude', 'Started at', 'Completed at', 'ResponseId', 'Participant id', 'Submission id', 'Total approvals', 'Sex', 'Country of residence', 'Student status', 'Age'])
+
+#filter for participants that took more than 30 seconds to complete the survey
+
+df = df[df['Duration (in seconds)']> 30]
+
+df = df.drop(columns=['Duration (in seconds)', 'Time taken'])
+
 ```
 
-# Data Cleaning & Prep
 
-
-## Response mapping to numeric values
+I converted the rideshare days per month and the public transportation days per month variables into numeric values (0-4) and renamed the columns to be more descriptive. One participant reported 'Not Sure' for acess to a vehicle, so I removed them from the data set. Employment status was simplified to a binary variable (full-time or other). I created my dependent variable `total_rides` by summing the rideshare days per month and public transportation days per month variables.
 
 ```{python}
-#| label: response-mapping
+#| label: map-numeric-values
+#| 
 
-df = data_all
-#make all responses lowercase
-df = df.apply(lambda col: col.str.lower() if col.name.startswith('Q') else col)
-
-# print("Unique responses in columns Q2-Q18:")
-# for col in df.columns:
-#     if col.startswith('Q'):
-#       if not col.startswith('Q0'):
-#         print(f"{col}: {df[col].dropna().unique()}")
-
-# df["Q1"].value_counts()
-
-# Show value counts for all Q columns
-# for col in df.columns:
-#     if col.startswith('Q') and not col.startswith('Q0'):
-#         print(f"\n{col} value counts:")
-#         print(df[col].value_counts(dropna=False))
-
-
-# Find columns with identical unique values
-from collections import defaultdict
 
 # Get unique values for each Q column (excluding Q0)
 q_unique_vals = {}
@@ -117,30 +108,15 @@ value_groups = defaultdict(list)
 for col, vals in q_unique_vals.items():
     value_groups[vals].append(col)
 
-# Display groups
-print("Columns with identical unique values:")
-for i, (vals, cols) in enumerate(value_groups.items(), 1):
-    print(f"\nGroup {i} ({len(cols)} columns): {cols}")
-    print(f"  Values: {vals}")
 
-
-# Create mapping dictionaries for each group
-group1_mapping = {
-    'strongly disagree': 1,
-    'somewhat disagree': 2,
-    'neither agree nor disagree': 3,
-    'somewhat agree': 4,
-    'strongly agree': 5
-}
 
 group2_mapping = {
   '0-1 days a month': 1, 
   '2-4 days a month': 2, 
   '4-8 days a month': 3, 
   '8 or more days a month': 4, 
-  'never': 0
+  'Never': 0
 }
-
 group3_mapping = {
   '1-2 rides in a typical day': 1, 
   '3-4 rides in a typical day': 2, 
@@ -148,107 +124,54 @@ group3_mapping = {
   '7 or more rides in a typical day': 4
 }
 
-group4_mapping = {
-  '0-1 days a month': 1, 
-  '2-4 days a month': 2, 
-  '4-8 days a month': 3, 
-  '8 or more days a month': 4, 
-  'never': 0
-}
-
-# Create numeric columns for each response from all group mappings
-
-for col in df.columns:
-    if col in value_groups[tuple(sorted(group1_mapping.keys()))]:
-        df[col + '_numeric'] = df[col].map(group1_mapping)
-
-# Create numeric columns for each response from group2_mapping
-for col in df.columns:
-    if col in value_groups[tuple(sorted(group2_mapping.keys()))]:
-        df[col + '_numeric'] = df[col].map(group2_mapping)
-
 for col in df.columns:
     if col in value_groups[tuple(sorted(group3_mapping.keys()))]:
         df[col + '_numeric'] = df[col].map(group3_mapping)
 
 for col in df.columns:
-    if col in value_groups[tuple(sorted(group4_mapping.keys()))]:
-        df[col + '_numeric'] = df[col].map(group4_mapping)
+    if col in value_groups[tuple(sorted(group2_mapping.keys()))]:
+        df[col + '_numeric'] = df[col].map(group2_mapping)
 
-#reverse score Q2, Q4, Q6, Q13, Q15, Q17
-df['Q2_numeric'] = 6 - df['Q2_numeric']
-df['Q4_numeric'] = 6 - df['Q4_numeric']
-df['Q6_numeric'] = 6 - df['Q6_numeric']
-df['Q13_numeric'] = 6 - df['Q13_numeric']
-df['Q15_numeric'] = 6 - df['Q15_numeric']
-df['Q17_numeric'] = 6 - df['Q17_numeric']
-
-
-# Show the new numeric columns
-numeric_cols = [col for col in df.columns if col.endswith('_numeric')]
-print(f"Created {len(numeric_cols)} numeric columns:")
-print(numeric_cols[:10])  # Show first 10
-```
-
-## Create new Columns group_score, convo_score, and total_score
-
-```{python}
-#create a column in df total_group_null that is the sum of the nan values for questions q1:q6
-df['total_group_null'] = df[['Q1_numeric', 'Q2_numeric', 'Q3_numeric', 'Q4_numeric', 'Q5_numeric', 'Q6_numeric']].isnull().sum(axis=1)
-
-#do the same thing except call it total_convo_null that is the sum of the nan values for question q13:q18
-df['total_convo_null'] = df[['Q13_numeric', 'Q14_numeric', 'Q15_numeric', 'Q16_numeric', 'Q17_numeric', 'Q18_numeric']].isnull().sum(axis=1)
-
-df = df[(df['total_group_null'] != 6) & (df['total_convo_null'] != 6)]
-
-# After all of that I now want to impute either the median or the mode of the question in group 1 and 2 that the participant did not answer. 
-
-df = df.fillna(df[['Q1_numeric', 'Q2_numeric', 'Q3_numeric', 'Q4_numeric', 'Q5_numeric', 'Q6_numeric', 'Q13_numeric', 'Q14_numeric', 'Q15_numeric', 'Q16_numeric', 'Q17_numeric', 'Q18_numeric']].median())
-
-
-print(df[['total_group_null', 'total_convo_null']])
-
-#create a new column in df called group_score that is the sum of q1-q6
-df['group_score'] = df[['Q1_numeric', 'Q2_numeric', 'Q3_numeric', 'Q4_numeric', 'Q5_numeric', 'Q6_numeric']].sum(axis=1, skipna=False)
-
-#create a new column in df called convo_score that is the sum of qq13-q18
-df['convo_score'] = df[['Q13_numeric', 'Q14_numeric', 'Q15_numeric', 'Q16_numeric', 'Q17_numeric', 'Q18_numeric']].sum(axis=1, skipna=False)
-
-#create new column in df called total scores
-df['total_score'] = df['group_score'] + df['convo_score']
-df[['group_score', 'convo_score', 'total_score']].head()
-
-#create a numeric sex column
-df['sex_numeric'] = df['Sex'].map({'Male': 0, 'Female': 1})
-
-#rename Q26 - Q29 to be more descriptive
+#rename the new numeric columns something that makes more sense
 df = df.rename(columns={
   'Q26_numeric': 'public_trans_per_month', 
   'Q27_numeric': 'public_trans_reg_day', 
   'Q28_numeric': 'rideshare_per_month', 
-  'Q29_numeric': 'rideshare_reg_day'})
-```
-
-## Remove columns that I am not interested in: 
-
-```{python}
-df_before_drop = df
-
-df = df.drop(columns=['EndDate', 'StartDate', 'LocationLatitude', 'LocationLongitude', 'Started at', 'Completed at', 'ResponseId', 'Participant id', 'Submission id'])
+  'Q29_numeric': 'rideshare_reg_day', 
+  'Q21':'Car Access'})
 
 
-```
-
-
-
-```{python}
-#drop all columns that start with Q 
+#drop ALL Q columns
 df = df.drop(columns=[col for col in df.columns if col.startswith('Q')])
 
+#remove 1 participant that has 'Not Sure' as their car access response
+df = df[df['Car Access'] != 'Not Sure']
+
+# create a new column called Full-Time that combines Part-Time and Other into Other for Employment Status
+df['Full-Time'] = df['Employment status'].apply(lambda x: 'Other' if x in ['Part-Time', 'Other'] else x)
+
+# create my new outcome variable - total rides
+df['total_rides'] = df['public_trans_per_month'] + df['rideshare_per_month']
+
+
+df = df.drop(columns=['public_trans_reg_day', 'rideshare_reg_day'])
+
 ```
 
 
-## Check for unreasonable values in dataset
+
+
+
+# Methods and Data
+
+```{python}
+#| label: new_merged_data_info
+
+print(f"Merged dataframe shape: {df.shape}")
+print(f"Columns in merged dataframe: {df.columns.tolist()}")
+
+```
+
 
 ```{python}
 #| label: tbl-describe_dataframe
@@ -257,135 +180,174 @@ df = df.drop(columns=[col for col in df.columns if col.startswith('Q')])
 
 # Create a mapping of variable names to human-readable descriptions
 variable_descriptions = {
-    'p_id': 'Participant ID',
-    'group_score': 'Group Discussion Score (Q1-Q6)',
-    'convo_score': 'Conversation Score (Q13-Q18)',
-    'total_score': 'Total Social Interaction Score',
-    'sex_numeric': 'Sex (0=Male, 1=Female)',
     'public_trans_per_month': 'Public Transportation Days per Month',
-    'public_trans_reg_day': 'Public Transportation Rides per Typical Day',
     'rideshare_per_month': 'Rideshare Days per Month',
-    'rideshare_reg_day': 'Rideshare Rides per Typical Day',
-    'total_group_null': 'Missing Group Discussion Responses',
-    'total_convo_null': 'Missing Conversation Responses',
-    'Duration (in seconds)': 'Survey Duration (seconds)',
-    'Time taken': 'Time Taken'
+    'total_rides': 'Total Ride Days per Month'
 }
 
 # Get the descriptive statistics and transpose
-desc_stats = df.describe().transpose().apply(lambda x: round(x, 2))
+desc_stats = df.drop(columns = ['p_id']).describe().transpose().apply(lambda x: round(x, 2))
 
 # Add human-readable descriptions as a new column
-desc_stats['variable_description'] = desc_stats.index.map(variable_descriptions)
+desc_stats['Variable'] = desc_stats.index.map(variable_descriptions)
 
 # Drop the existing index and set the new column as the index
-desc_stats = desc_stats.reset_index(drop=True).set_index('variable_description')
+desc_stats = desc_stats.reset_index(drop=True).set_index('Variable').drop(columns = ['25%', '50%', '75%'])
 
 desc_stats
 ```
 
-```{python}
-
-for col in ['Country of residence', 'Sex', 'Employment status']:
-    print(df[col].value_counts())
-```
-
-## Filter out participants with duration in seconds or time taken < 30 seconds
 
 ```{python}
-# Filter out participants with duration in seconds or time taken < 30 seconds
-# print( df[df['Duration (in seconds)']< 30])
-
-df = df[df['Duration (in seconds)']> 30]
-
-df = df.drop(columns=['Duration (in seconds)', 'Time taken'])
-
-print(df.describe())
-
-print(df.groupby('Employment status')[['public_trans_per_month', 'rideshare_per_month', 'public_trans_reg_day', 'rideshare_reg_day', 'rideshare_reg_day']].describe().T)
-
-for col in ['Country of residence', 'Sex', 'Employment status']:
-    print(df[col].value_counts())
-```
-
-## Create histograms for all numeric columns except p_id and bar plots with the value counts for categorical variables
-
-```{python}
-
 #| label: fig-histograms
 #| fig-cap: "Histograms of numeric variables"
 
 # Drop p_id column
 df_plot = df.drop(columns=['p_id'])
 
-df_plot.hist(figsize=(15, 10))
+df_plot.hist(figsize=(8, 10))
 plt.show()
 ```
 
-```{python}
-#| label: fig-barplots
-#| fig-cap: "Bar plots of categorical variables"
-#| fig-subcap: ["Country of residence", "Sex", "Employment status"]
+::: {.panelset}
 
-# Create bar plots for categorical variables there should be 3 barplots 
-
-for col in ['Country of residence', 'Sex', 'Employment status']:
-    df[col].value_counts().plot(kind='bar')
-    plt.show()
-
-```
+::: {.panel}
+## Employment Status
 
 ```{python}
-#print out the rows in df that have null values in any of the columns
-print(df[df.isnull().any(axis=1)])
-print(df[df.isnull().any(axis=1)].shape)
+#| label: tbl-valuecounts-employment
+#| tbl-cap: "Value counts for employment status"
 
+# Create a mapping of employment status values to human-readable descriptions
+employment_descriptions = {
+    'Full-Time': 'Full-Time Employment',
+    'Other': 'Other Employment Status'
+}
 
+# Get the value counts
+employ_counts = df['Full-Time'].value_counts()
 
+# Create a DataFrame with the counts
+employ_tbl = pd.DataFrame({'count': employ_counts})
+
+# Add human-readable descriptions as a new column
+employ_tbl['Employment'] = employ_tbl.index.map(employment_descriptions)
+
+# Drop the existing index and set the new column as the index
+employ_tbl = employ_tbl.reset_index(drop=True).set_index('Employment')
+
+employ_tbl
 ```
+
+:::
+
+::: {.panel}
+## Vehicle Access
 
 ```{python}
+#| label: tbl-valuecounts-car
+#| tbl-cap: "Value counts for car access"
 
+# Create a mapping of car access values to human-readable descriptions
+VehicleAccess = {
+    'Yes': 'Has Access to Vehicle',
+    'No': 'No Access to Vehicle'
+}
 
+# Get the value counts
+car_counts = df['Car Access'].value_counts()
 
+# Create a DataFrame with the counts
+car_tbl = pd.DataFrame({'count': car_counts})
+
+# Add human-readable descriptions as a new column
+car_tbl['Vehicle Access'] = car_tbl.index.map(VehicleAccess)
+
+# Drop the existing index and set the new column as the index
+car_tbl = car_tbl.reset_index(drop=True).set_index('Vehicle Access')
+
+car_tbl
 ```
 
-Hypothesis: 
-I believe full time employees have a lower ratio of public_trans_per_month to rideshare_per_month than part time and other types of employment status. full time employees should generally have a higher number of transportation days than someone that is part time or other. 
+:::
 
-People with access to a vehicle will have a lower ratio of public_trans_per_month to rideshare_per_month than those without access to a vehicle. The effect of employment status on transportation choices may be moderated by access to a vehicle, such that fulltime employment status with access to a vehicle will have a lower ratio of public_trans_per_month to rideshare_per_month than parttime employment status with access to a vehicle.
-
+:::
 ```{python}
+#| label: fig-barplot
+#| fig-cap: "Histograms of Employment Status and Vehicle Access"
+#| fig-width: 10
+#| fig-height: 3
 
 
+# put value count for employmentstats and for car access in the same figure and make the y axis the same for each plot and don't show the y axis for the 2nd plot
+fig, axes = plt.subplots(1, 2)
+df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0])
+df['Car Access'].value_counts().plot(kind='bar', ax=axes[1])
+axes[0].set_ylim([0, 160])
+axes[1].set_ylim([0, 160])
+axes[1].set_yticks([])   # Remove y-axis ticks for the second plot
+axes[1].set_xlabel('Car Access')
+plt.title('Count of Employment Status and Vehicle Access')
+plt.show()
 
 ```
-
-# Introduction
-
-This is the introduction section. Add your content here.
-
-# Methods
-
-## Participants
-
-Describe the participants in your study.
-
-## Materials
-
-Describe the materials used in your study.
-
-## Procedure
-
-Describe the procedure of your study.
 
 # Results
+```{python}
+#| label: tbl-groupby
+#| tbl-cap: "Descriptive Statistics for Total Rides by Employment Status and Vehicle Access"
 
-Add your results here.
 
-# Discussion
+cross_tab = df.groupby(['Full-Time', 'Car Access'])['total_rides'].describe().drop(columns = ['25%', '50%', '75%']).round(2)
+cross_tab
+```
 
-Add your discussion here.
+```{python}
+#| label: tbl-anova
+#| tbl-cap: "2x2 ANOVA results for total rides by employment status and vehicle access"
 
-# References
+# Create the ANOVA model (using Q() for column names with special characters)
+model = ols('total_rides ~ C(Q("Full-Time")) * C(Q("Car Access"))', data=df).fit()
 
+# Get the ANOVA table
+anova_table = sm.stats.anova_lm(model, typ=2).round(2)
+
+# Display the ANOVA table
+anova_table
+```
+
+
+
+@tbl-describe_dataframe give general descriptive statistics of the numeric values of the data. 
+
+@tbl-groupby shows the descriptive statistics of my dependent variable 'total_rides' by employment status and vehicle access.
+
+
+```{python}
+#| label: fig-boxplot
+#| fig-cap: "Boxplot of total rides by employment status and vehicle access"
+#| fig-width: 8
+#| fig-height: 5
+
+#create a boxplot of total_rides by employment status and vehicle access
+sns.boxplot(data=df, x='Full-Time', y='total_rides', hue='Car Access')
+plt.title('Total Rides by Employment Status and Vehicle Access')
+plt.xlabel('Employment Status')
+plt.ylabel('Total Rides per Month')
+plt.legend(title='Vehicle Access', bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+
+
+
+
+# Conclusion, Future Directions, & Limitations
+
+
+## Future Directions
+Reviewing @fig-boxplot, there appears to be an outlier that is a full-time employee without access to a car with very low ride share and public transportation usage days. It would be interesting to further examine this outlier; however, it seems to be this person may walk to work or work from home. 
+
+## Limitations
+
+The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.

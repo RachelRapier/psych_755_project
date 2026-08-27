@@ -13,11 +13,9 @@ echo: TRUE
 
 # Introduction: 
 
-The type of transportation an individual chooses to use is influenced by a variety of factors, including employment status and access to a vehicle. 
+The type of transportation an individual chooses to use is influenced by a variety of factors, including employment status and access to a vehicle. Workers in America typically drive a personal vehicle to work [@Yang2015]. 
 
 A full-time employee working in the office will have to be in the office 20-22 days per month, while part-time employees, contract employees, and retirees will not need to commute as frequently. Because full time employees are required to be somewhere more days of the week than other types of employment, I hypothesize that the sum of their total public transportation days per month and rideshare days per month will be higher than those who are not full-time employed. I also hypothesize that access to a vehicle will decrease the total number of public transportaion and rideshare rides. I hypothesize that access to a vehicle will have a stronger effect on the number of public transportation and rideshare rides for individuals not employed full-time. 
-
-Full time employees may have more disposable income to afford a vehicle. Others may rely sol
 
 Transportation use and frequency varies based on num between full-time employed individuals and those who are not employed full-time. In this study, I examine public transportation and rideshare usage patterns between these two groups. 
 
@@ -172,6 +170,14 @@ print(f"Columns in merged dataframe: {df.columns.tolist()}")
 
 ```
 
+Model assumptions were checked in the [supplemental document](supplemental.qmd). 
+
+```{python}
+# export the data frame to a csv so I can load it in supplemental.qmd
+df.to_csv('cleaned_data.csv', index=False)
+
+```
+
 
 ```{python}
 #| label: tbl-describe_dataframe
@@ -303,11 +309,19 @@ cross_tab
 ```
 
 ```{python}
-#| label: tbl-anova
-#| tbl-cap: "2x2 ANOVA results for total rides by employment status and vehicle access"
+#| label: model-create-python
 
 # Create the ANOVA model (using Q() for column names with special characters)
-model = ols('total_rides ~ C(Q("Full-Time")) * C(Q("Car Access"))', data=df).fit()
+df['full_time'] = df['Full-Time']
+df['car_access'] = df['Car Access']
+
+
+model = ols('total_rides ~ C(full_time) * C(car_access)', data=df).fit()
+```
+
+```{python}
+#| label: tbl-anova
+#| tbl-cap: "2x2 ANOVA results for total rides by employment status and vehicle access"
 
 # Get the ANOVA table
 anova_table = sm.stats.anova_lm(model, typ=2).round(2)
@@ -351,3 +365,7 @@ Reviewing @fig-boxplot, there appears to be an outlier that is a full-time emplo
 ## Limitations
 
 The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.
+
+::: {#references}
+
+:::

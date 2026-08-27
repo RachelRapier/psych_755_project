@@ -91,8 +91,6 @@ I converted the rideshare days per month and the public transportation days per 
 
 ```{python}
 #| label: map-numeric-values
-#| 
-
 
 # Get unique values for each Q column (excluding Q0)
 q_unique_vals = {}
@@ -158,21 +156,16 @@ df = df.drop(columns=['public_trans_reg_day', 'rideshare_reg_day'])
 
 
 
-
-
-# Methods and Data
-
 ```{python}
-#| label: new_merged_data_info
-
-print(f"Merged dataframe shape: {df.shape}")
-print(f"Columns in merged dataframe: {df.columns.tolist()}")
+#| label: num_rows
+num_rows = df.shape[0]
 
 ```
 
-Model assumptions were checked in the [supplemental document](supplemental.qmd). 
+The final cleaned dataset contains `{python} num_rows`.participants. Model assumptions were checked in the [supplemental document](supplemental.qmd). 
 
 ```{python}
+#| label: export_cleaned_data
 # export the data frame to a csv so I can load it in supplemental.qmd
 df.to_csv('cleaned_data.csv', index=False)
 
@@ -215,10 +208,33 @@ df_plot.hist(figsize=(8, 10))
 plt.show()
 ```
 
-::: {.panelset}
+## Employment Status and Vehicle Access
 
-::: {.panel}
-## Employment Status
+::: {.panel-tabset}
+
+### Bar Plot of Employment Status and Vehicle Access
+
+```{python}
+#| label: fig-barplot
+#| fig-cap: "Histograms of Employment Status and Vehicle Access"
+#| fig-width: 10
+#| fig-height: 3
+
+
+# put value count for employmentstats and for car access in the same figure and make the y axis the same for each plot and don't show the y axis for the 2nd plot
+fig, axes = plt.subplots(1, 2)
+df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0])
+df['Car Access'].value_counts().plot(kind='bar', ax=axes[1])
+axes[0].set_ylim([0, 160])
+axes[1].set_ylim([0, 160])
+axes[1].set_yticks([])   # Remove y-axis ticks for the second plot
+axes[1].set_xlabel('Car Access')
+plt.title('Count of Employment Status and Vehicle Access')
+plt.show()
+
+```
+
+### Employment Status Table
 
 ```{python}
 #| label: tbl-valuecounts-employment
@@ -245,10 +261,7 @@ employ_tbl = employ_tbl.reset_index(drop=True).set_index('Employment')
 employ_tbl
 ```
 
-:::
-
-::: {.panel}
-## Vehicle Access
+### Vehicle Access Table
 
 ```{python}
 #| label: tbl-valuecounts-car
@@ -276,27 +289,6 @@ car_tbl
 ```
 
 :::
-
-:::
-```{python}
-#| label: fig-barplot
-#| fig-cap: "Histograms of Employment Status and Vehicle Access"
-#| fig-width: 10
-#| fig-height: 3
-
-
-# put value count for employmentstats and for car access in the same figure and make the y axis the same for each plot and don't show the y axis for the 2nd plot
-fig, axes = plt.subplots(1, 2)
-df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0])
-df['Car Access'].value_counts().plot(kind='bar', ax=axes[1])
-axes[0].set_ylim([0, 160])
-axes[1].set_ylim([0, 160])
-axes[1].set_yticks([])   # Remove y-axis ticks for the second plot
-axes[1].set_xlabel('Car Access')
-plt.title('Count of Employment Status and Vehicle Access')
-plt.show()
-
-```
 
 # Results
 ```{python}
@@ -328,6 +320,26 @@ anova_table = sm.stats.anova_lm(model, typ=2).round(2)
 
 # Display the ANOVA table
 anova_table
+```
+
+```{python}
+#| label: tbl-parameter-estimates
+#| tbl-cap: "Parameter estimates for the ANOVA model"
+
+# Get the parameter estimates
+params = model.params.round(2)
+conf_int = model.conf_int().round(2)
+pvalues = model.pvalues.round(3)
+
+# Create a summary table
+param_table = pd.DataFrame({
+    'Estimate': params,
+    '2.5%': conf_int[0],
+    '97.5%': conf_int[1],
+    'P-value': pvalues
+})
+
+param_table
 ```
 
 
@@ -365,6 +377,9 @@ Reviewing @fig-boxplot, there appears to be an outlier that is a full-time emplo
 ## Limitations
 
 The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.
+
+The values of `total_rides` are calculated from categorical variables `ride_share_per_month` and `public_trans_per_month` that have unbalanced ranges: `{python} ', '.join(group2_mapping.keys())`. Calculating `total_rides` as the sum of these ranges means that the value could represent a different range of actual ride counts. For example: if a participant has a total ride value of 4, they could have 4 ride share days and 0 public transportation days, or 3 ride share days and 1 public transportation day (visa versa), and 2 ride share days and 1 public transportation day. When calculated, that would be 8+, 4-9, or  4-8 days per month. So the responses are not super accurate
+
 
 ::: {#references}
 

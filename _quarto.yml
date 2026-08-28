@@ -9,7 +9,8 @@ format:
   html:
     toc: true
     number-sections: true
-    code-fold: true
+    code-fold: false
+    code-overflow: wrap
     code-tools: true
   pdf:
     toc: true
@@ -20,7 +21,7 @@ format:
 
 metadata:
   author: "Rachel Rapier"
-  date: "July 8, 2026"
+  date: "August 27, 2026"
   title: "Psych 755 Project"
   
 bibliography: references.bib

@@ -199,46 +199,54 @@ desc_stats
 
 ```{python}
 #| label: fig-histograms
-#| fig-cap: "Histograms of numeric variables"
+#| fig-cap: "Histograms Total Ride Days Per Month$"
+#| fig-align: center
+#| fig-cap-location: top
+
 
 # Drop p_id column
-df_plot = df.drop(columns=['p_id'])
+# df_plot = df.drop(columns=['p_id'])
 
-df_plot.hist(figsize=(8, 10))
+# df_plot.hist(figsize=(8, 10))
+
+sns.histplot(data=df,x='total_rides', bins=8)
+plt.xlabel('Total Ride Days per Month')
+
 plt.show()
 ```
 
 ## Employment Status and Vehicle Access
 
-::: {.panel-tabset}
 
 ### Bar Plot of Employment Status and Vehicle Access
 
 ```{python}
 #| label: fig-barplot
 #| fig-cap: "Histograms of Employment Status and Vehicle Access"
-#| fig-width: 10
-#| fig-height: 3
+#| fig-align: center
+#| fig-cap-location: top
 
 
 # put value count for employmentstats and for car access in the same figure and make the y axis the same for each plot and don't show the y axis for the 2nd plot
 fig, axes = plt.subplots(1, 2)
-df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0])
-df['Car Access'].value_counts().plot(kind='bar', ax=axes[1])
+df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0], rot=90)
+df['Car Access'].value_counts().plot(kind='bar', ax=axes[1], rot=90)
 axes[0].set_ylim([0, 160])
 axes[1].set_ylim([0, 160])
 axes[1].set_yticks([])   # Remove y-axis ticks for the second plot
 axes[1].set_xlabel('Car Access')
-plt.title('Count of Employment Status and Vehicle Access')
+
 plt.show()
 
 ```
 
-### Employment Status Table
+ ***I Cannot Figure Out How to rotate the bar labels in this graph and it is very frustration***
+
 
 ```{python}
 #| label: tbl-valuecounts-employment
 #| tbl-cap: "Value counts for employment status"
+
 
 # Create a mapping of employment status values to human-readable descriptions
 employment_descriptions = {
@@ -261,11 +269,11 @@ employ_tbl = employ_tbl.reset_index(drop=True).set_index('Employment')
 employ_tbl
 ```
 
-### Vehicle Access Table
 
 ```{python}
 #| label: tbl-valuecounts-car
 #| tbl-cap: "Value counts for car access"
+
 
 # Create a mapping of car access values to human-readable descriptions
 VehicleAccess = {
@@ -288,12 +296,23 @@ car_tbl = car_tbl.reset_index(drop=True).set_index('Vehicle Access')
 car_tbl
 ```
 
-:::
 
-# Results
+
+```{python}
+#| label: tbl-cross-tab
+#| tbl-cap: "Value Counts of Employment Status and Car Access"
+#| tbl-align: center
+#| layout-nrow: 1
+
+
+display(car_tbl)
+display(employ_tbl)
+```
+
 ```{python}
 #| label: tbl-groupby
 #| tbl-cap: "Descriptive Statistics for Total Rides by Employment Status and Vehicle Access"
+
 
 
 cross_tab = df.groupby(['Full-Time', 'Car Access'])['total_rides'].describe().drop(columns = ['25%', '50%', '75%']).round(2)
@@ -342,7 +361,7 @@ param_table = pd.DataFrame({
 param_table
 ```
 
-
+I need to change the variable names for theoparameter estimates table and then I will **REFER** to the values created in the tables above
 
 @tbl-describe_dataframe give general descriptive statistics of the numeric values of the data. 
 
@@ -364,8 +383,6 @@ plt.legend(title='Vehicle Access', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 plt.show()
 ```
-
-
 
 
 # Conclusion, Future Directions, & Limitations

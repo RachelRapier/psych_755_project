@@ -14,10 +14,9 @@ format:
     code-tools: true
   pdf:
     toc: true
-    number-sections: true
-    latex-engine: pdflatex
   docx:
-    reference-doc: reference-doc.docx
+    toc: true
+
 
 metadata:
   author: "Rachel Rapier"

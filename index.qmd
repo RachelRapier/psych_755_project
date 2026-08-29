@@ -23,8 +23,6 @@ In addition, having access to a vehicle can impact transportation choices, and I
 
 # Data and Methods
 
-### Standard Package Imports and Data Loading
-
 ```{python}
 #| label: load-packages-data
 #| 
@@ -58,14 +56,7 @@ data_all = pd.merge(data_all, dataC, left_on='Participant id', right_on='Q0', ho
 ```
 
 
-### Data Cleaning
-
-I created a new particpant ID as an index that was simplified from the original dataset. This was done to make the data easier to work with and to avoid issues with the long string of numbers in the original participant ID.
-
-I then dropped the columns in the data set that I was not using for my analysis.
-
-There were 2 participants that completed the survey in less than 30 seconds, so I dropped them from the dataset because their values would not be accurate.
-
+## Data Cleaning
 
 ```{python}
 #| label: cleaning-data
@@ -76,7 +67,7 @@ data_all['p_id'] = data_all.index
 data_all = data_all[['p_id'] + [col for col in data_all.columns if col != 'p_id']]
 
 #drop columns that are not needed   
-df = data_all.drop(columns=['EndDate', 'StartDate', 'LocationLatitude', 'LocationLongitude', 'Started at', 'Completed at', 'ResponseId', 'Participant id', 'Submission id', 'Total approvals', 'Sex', 'Country of residence', 'Student status', 'Age'])
+df = data_all.drop(columns=['EndDate', 'StartDate', 'LocationLatitude', 'LocationLongitude', 'Started at', 'Completed at', 'ResponseId', 'Participant id', 'Submission id', 'Total approvals', 'Country of residence', 'Student status'])
 
 #filter for participants that took more than 30 seconds to complete the survey
 
@@ -85,9 +76,6 @@ df = df[df['Duration (in seconds)']> 30]
 df = df.drop(columns=['Duration (in seconds)', 'Time taken'])
 
 ```
-
-
-I converted the rideshare days per month and the public transportation days per month variables into numeric values (0-4) and renamed the columns to be more descriptive. One participant reported 'Not Sure' for acess to a vehicle, so I removed them from the data set. Employment status was simplified to a binary variable (full-time or other). I created my dependent variable `total_rides` by summing the rideshare days per month and public transportation days per month variables.
 
 ```{python}
 #| label: map-numeric-values
@@ -154,13 +142,20 @@ df = df.drop(columns=['public_trans_reg_day', 'rideshare_reg_day'])
 
 ```
 
-
-
 ```{python}
 #| label: num_rows
 num_rows = df.shape[0]
 
 ```
+
+I created a new particpant ID as an index that was simplified from the original dataset. This was done to make the data easier to work with and to avoid issues with the long string of numbers in the original participant ID.
+
+I then dropped the columns in the data set that I was not using for my analysis.
+
+There were 2 participants that completed the survey in less than 30 seconds, so I dropped them from the dataset because their values would not be accurate.
+
+I converted the rideshare days per month and the public transportation days per month variables into numeric values (0-4) and renamed the columns to be more descriptive. One participant reported 'Not Sure' for acess to a vehicle, so I removed them from the data set. Employment status was simplified to a binary variable (full-time or other). I created my dependent variable `total_rides` by summing the `rideshare days per month` and `public transportation days` per month variables.
+
 
 The final cleaned dataset contains `{python} num_rows`.participants. Model assumptions were checked in the [supplemental document](supplemental.qmd). 
 
@@ -171,7 +166,7 @@ df.to_csv('cleaned_data.csv', index=False)
 
 ```
 
-
+## Descriptive Statistics
 ```{python}
 #| label: tbl-describe_dataframe
 #| tbl-cap: "Descriptive statistics for the cleaned dataset"
@@ -181,7 +176,8 @@ df.to_csv('cleaned_data.csv', index=False)
 variable_descriptions = {
     'public_trans_per_month': 'Public Transportation Days per Month',
     'rideshare_per_month': 'Rideshare Days per Month',
-    'total_rides': 'Total Ride Days per Month'
+    'total_rides': 'Total Ride Days per Month', 
+    'Age': 'Age'
 }
 
 # Get the descriptive statistics and transpose
@@ -199,7 +195,7 @@ desc_stats
 
 ```{python}
 #| label: fig-histograms
-#| fig-cap: "Histograms Total Ride Days Per Month$"
+#| fig-cap: "Histogram of Total Ride Days Per Month"
 #| fig-align: center
 #| fig-cap-location: top
 
@@ -215,27 +211,25 @@ plt.xlabel('Total Ride Days per Month')
 plt.show()
 ```
 
-## Employment Status and Vehicle Access
-
-
-### Bar Plot of Employment Status and Vehicle Access
 
 ```{python}
 #| label: fig-barplot
-#| fig-cap: "Histograms of Employment Status and Vehicle Access"
+#| fig-cap: "Bar Plots of Employment Status and Vehicle Access"
 #| fig-align: center
 #| fig-cap-location: top
 
 
 # put value count for employmentstats and for car access in the same figure and make the y axis the same for each plot and don't show the y axis for the 2nd plot
-fig, axes = plt.subplots(1, 2)
-df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0], rot=90)
-df['Car Access'].value_counts().plot(kind='bar', ax=axes[1], rot=90)
-axes[0].set_ylim([0, 160])
-axes[1].set_ylim([0, 160])
-axes[1].set_yticks([])   # Remove y-axis ticks for the second plot
-axes[1].set_xlabel('Car Access')
+fig, axes = plt.subplots(1, 2, sharey=True)
 
+df['Full-Time'].value_counts().plot(kind='bar', ax=axes[0], rot=90)
+
+
+df['Car Access'].value_counts().reindex(['Yes', 'No']).plot(
+    kind='bar',
+    ax=axes[1],
+    rot=90
+)
 plt.show()
 
 ```
@@ -243,9 +237,12 @@ plt.show()
  ***I Cannot Figure Out How to rotate the bar labels in this graph and it is very frustration***
 
 
+
 ```{python}
-#| label: tbl-valuecounts-employment
-#| tbl-cap: "Value counts for employment status"
+#| label: tbl-cross-tab
+#| tbl-cap: "Value Counts of Employment Status and Car Access"
+#| tbl-align: center
+#| layout-nrow: 1
 
 
 # Create a mapping of employment status values to human-readable descriptions
@@ -266,14 +263,8 @@ employ_tbl['Employment'] = employ_tbl.index.map(employment_descriptions)
 # Drop the existing index and set the new column as the index
 employ_tbl = employ_tbl.reset_index(drop=True).set_index('Employment')
 
-employ_tbl
-```
-
-
-```{python}
-#| label: tbl-valuecounts-car
-#| tbl-cap: "Value counts for car access"
-
+# Add total row
+employ_tbl.loc['Total'] = employ_tbl['count'].sum()
 
 # Create a mapping of car access values to human-readable descriptions
 VehicleAccess = {
@@ -293,21 +284,16 @@ car_tbl['Vehicle Access'] = car_tbl.index.map(VehicleAccess)
 # Drop the existing index and set the new column as the index
 car_tbl = car_tbl.reset_index(drop=True).set_index('Vehicle Access')
 
-car_tbl
-```
-
-
-
-```{python}
-#| label: tbl-cross-tab
-#| tbl-cap: "Value Counts of Employment Status and Car Access"
-#| tbl-align: center
-#| layout-nrow: 1
-
+# Add total row
+car_tbl.loc['Total'] = car_tbl['count'].sum()
 
 display(car_tbl)
+
 display(employ_tbl)
 ```
+***This table is frustrating me because I want some space between the 2 tables and I want them to be side by side***
+
+***Eventually I want @fig-barplot and these tables to be in a tab set of some sort so you can click on it, but its just not working***
 
 ```{python}
 #| label: tbl-groupby
@@ -315,8 +301,8 @@ display(employ_tbl)
 
 
 
-cross_tab = df.groupby(['Full-Time', 'Car Access'])['total_rides'].describe().drop(columns = ['25%', '50%', '75%']).round(2)
-cross_tab
+grouped = df.groupby(['Full-Time', 'Car Access'])['total_rides'].describe().drop(columns = ['25%', '50%', '75%']).round(2)
+grouped
 ```
 
 ```{python}
@@ -327,7 +313,7 @@ df['full_time'] = df['Full-Time']
 df['car_access'] = df['Car Access']
 
 
-model = ols('total_rides ~ C(full_time) * C(car_access)', data=df).fit()
+model = ols('total_rides ~ C(full_time) + C(car_access)', data=df).fit()
 ```
 
 ```{python}
@@ -335,9 +321,11 @@ model = ols('total_rides ~ C(full_time) * C(car_access)', data=df).fit()
 #| tbl-cap: "2x2 ANOVA results for total rides by employment status and vehicle access"
 
 # Get the ANOVA table
-anova_table = sm.stats.anova_lm(model, typ=2).round(2)
+anova_table = sm.stats.anova_lm(model, typ=3).round(2)
 
-# Display the ANOVA table
+# anova_table.index = ['Intercept','Full-Time', 'Car Access']
+
+# Display the ANOVA tables
 anova_table
 ```
 
@@ -357,6 +345,9 @@ param_table = pd.DataFrame({
     '97.5%': conf_int[1],
     'P-value': pvalues
 })
+
+#rename the indexes to better names
+param_table.index = ['Intercept', 'Full-Time', 'Car Access']
 
 param_table
 ```
@@ -395,7 +386,9 @@ Reviewing @fig-boxplot, there appears to be an outlier that is a full-time emplo
 
 The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.
 
-The values of `total_rides` are calculated from categorical variables `ride_share_per_month` and `public_trans_per_month` that have unbalanced ranges: `{python} ', '.join(group2_mapping.keys())`. Calculating `total_rides` as the sum of these ranges means that the value could represent a different range of actual ride counts. For example: if a participant has a total ride value of 4, they could have 4 ride share days and 0 public transportation days, or 3 ride share days and 1 public transportation day (visa versa), and 2 ride share days and 1 public transportation day. When calculated, that would be 8+, 4-9, or  4-8 days per month. So the responses are not super accurate
+The values of `total_rides` are calculated from categorical variables `ride_share_per_month` and `public_trans_per_month` that have unbalanced ranges: `{python} ', '.join(group2_mapping.keys())`. Calculating `total_rides` as the sum of these ranges means that the value could represent a different range of actual ride counts. For example: if a participant has a total ride value of 4, they could have 4 ride share days and 0 public transportation days, or 3 ride share days and 1 public transportation day (visa versa), and 2 ride share days and 1 public transportation day. But, when calculating the actual number of days per month, the result could be 8+, 4-9, or  4-8. Therefore, the parameter estimates displayed in @tbl-parameter-estimates are not informative values. 
+
+The main conclusion from this analysis is that there is
 
 
 ::: {#references}

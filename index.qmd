@@ -241,88 +241,6 @@ plt.show()
 #| label: tbl-cross-tab
 #| tbl-cap: "Value Counts of Employment Status and Car Access"
 
-from IPython.display import display, HTML
-
-# Employment table
-employment_descriptions = {
-    'Full-Time': 'Full-Time Employment',
-    'Other': 'Other Employment Status'
-}
-
-employ_counts = df['Full-Time'].value_counts()
-
-employ_tbl = pd.DataFrame({'count': employ_counts})
-employ_tbl['Employment'] = employ_tbl.index.map(employment_descriptions)
-employ_tbl = employ_tbl.reset_index(drop=True).set_index('Employment')
-employ_tbl.loc['Total'] = employ_tbl['count'].sum()
-
-
-# Vehicle access table
-VehicleAccess = {
-    'Yes': 'Has Access to Vehicle',
-    'No': 'No Access to Vehicle'
-}
-
-car_counts = df['Car Access'].value_counts()
-
-car_tbl = pd.DataFrame({'count': car_counts})
-car_tbl['Vehicle Access'] = car_tbl.index.map(VehicleAccess)
-car_tbl = car_tbl.reset_index(drop=True).set_index('Vehicle Access')
-car_tbl.loc['Total'] = car_tbl['count'].sum()
-
-
-# Display side-by-side
-display(HTML(f"""
-<style>
-    .cross-tab-container {{
-        display: flex;
-        gap: 40px;
-        justify-content: center;
-        align-items: flex-start;
-    }}
-
-    .cross-tab {{
-        flex: 1;
-        max-width: 45%;
-    }}
-
-    .cross-tab table {{
-        width: 100%;
-        border-collapse: collapse;
-    }}
-
-    .cross-tab th,
-    .cross-tab td {{
-        padding: 6px 10px;
-        text-align: left;
-    }}
-
-    .cross-tab h4 {{
-        text-align: center;
-        margin-bottom: 10px;
-    }}
-</style>
-
-<div class="cross-tab-container">
-
-    <div class="cross-tab">
-        <h4>Employment Status</h4>
-        {employ_tbl.to_html()}
-    </div>
-
-    <div class="cross-tab">
-        <h4>Vehicle Access</h4>
-        {car_tbl.to_html()}
-    </div>
-
-</div>
-"""))
-```
-
-```{python}
-#| label: tbl-cross-tab2
-#| tbl-cap: "Value Counts of Employment Status and Car Access2"
-
 import pandas as pd
 from IPython.display import display
 
@@ -401,7 +319,8 @@ combined_tbl = pd.concat(
     axis=1
 )
 
-display(combined_tbl)
+combined_tbl = combined_tbl.reset_index(drop = True)
+combined_tbl
 ```
 
 
@@ -433,7 +352,7 @@ model = ols('total_rides ~ C(full_time) + C(car_access)', data=df).fit()
 # Get the ANOVA table
 anova_table = sm.stats.anova_lm(model, typ=3).round(2)
 
-# anova_table.index = ['Intercept','Full-Time', 'Car Access']
+anova_table.index = ['Intercept','Full-Time', 'Car Access', 'Residual']
 
 # Display the ANOVA tables
 anova_table

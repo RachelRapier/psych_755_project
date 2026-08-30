@@ -5,7 +5,7 @@ author:
     affiliation: "University of Wisconsin, Madison"
 date: "2025-10-15"
 abstract: |
-  This manuscript discusses the relationship between public transportation and rideshare frequency based on employment status and whether the individual had access to a vehicle.
+  The primary purpose of this manuscript is to learn and develop the skills and tools specific to Quarto documents. The simple 2x2 anova was used to examine the relationship between employment status, vehicle access, and total number of days per month an individual uses public transportation or rideshare. 
 jupyter: python3
 bibliography: references.bib
 echo: TRUE
@@ -13,15 +13,19 @@ echo: TRUE
 
 # Introduction: 
 
-The type of transportation an individual chooses to use is influenced by a variety of factors, including employment status and access to a vehicle. Workers in America typically drive a personal vehicle to work [@Yang2015]. 
+The type of transportation an individual chooses to use is influenced by a variety of factors, including employment status and access to a vehicle. Workers in America typically drive a personal vehicle to work everyday [@Yang2015]. However, public transportation is also commonly used to commute to work, and rideshare services like Uber and Lyft have become increasingly popular in recent years. 
 
-A full-time employee working in the office will have to be in the office 20-22 days per month, while part-time employees, contract employees, and retirees will not need to commute as frequently. Because full time employees are required to be somewhere more days of the week than other types of employment, I hypothesize that the sum of their total public transportation days per month and rideshare days per month will be higher than those who are not full-time employed. I also hypothesize that access to a vehicle will decrease the total number of public transportaion and rideshare rides. I hypothesize that access to a vehicle will have a stronger effect on the number of public transportation and rideshare rides for individuals not employed full-time. 
+Access to a vehicle greatly reduces the need for public transportation and rideshare services. I hypothesize that access to a vehicle will decrease the total number of public transportation and rideshare rides for both full-time employees and individuals with other employment statuses. The null hypothesis is that there is no difference in transportation usage between individuals with and without access to a vehicle.
 
-Transportation use and frequency varies based on num between full-time employed individuals and those who are not employed full-time. In this study, I examine public transportation and rideshare usage patterns between these two groups. 
+A full-time employee that works from the office need to commute to the office 20-22 days per month, while part-time employees, contractors, and retirees will not need to commute as frequently. I hypothesize that full-time employed individuals will have higher transportation usage than those with other types of employment status whether or not they have access to a vehicle. The null hypothesis is that there is no difference in transportation usage between full-time employed individuals and those with other types of employment status. 
 
-In addition, having access to a vehicle can impact transportation choices, and I hypothesize that access to a vehicle will decrease the # of days per month that individuals use public transportation or rideshare services.
+I hypothesize that the effect of having access to a vehicle on total public transportation and rideshare days per month will be stronger for non-full-time employees. ***This is an interaction effect that I should look into more; currently not in the paper***
+
+
 
 # Data and Methods
+
+The data was provided by professor Adam Nelson, PhD, at the University of Wisconsin, Madison for the students enrolled in the Data Science in Human Behavior masters program. 
 
 ```{python}
 #| label: load-packages-data
@@ -148,15 +152,17 @@ num_rows = df.shape[0]
 
 ```
 
-I created a new particpant ID as an index that was simplified from the original dataset. This was done to make the data easier to work with and to avoid issues with the long string of numbers in the original participant ID.
+Participant IDs from the original data set were long complicated strings of letters and numbers. I created a new simplified particpant ID as an index and removed the old long string column.
 
-I then dropped the columns in the data set that I was not using for my analysis.
-There were 2 participants that completed the survey in less than 30 seconds, so I dropped them from the dataset because their values would not be accurate.
+Following some EDA, I noticed 2 participants completed the survey in less than 30 seconds. That is an unreasonably short amount of time to answer all of the questions, so I removed those participants from the data set, as their responses will not be accurate. 
 
-I converted the rideshare days per month and the public transportation days per month variables into numeric values (0-4) and renamed the columns to be more descriptive. One participant reported 'Not Sure' for acess to a vehicle, so I removed them from the data set. Employment status was simplified to a binary variable (full-time or other). I created my dependent variable `total_rides` by summing the `rideshare days per month` and `public transportation days` per month variables.
+Next I reviewed my independent variables `Car Access` and `Employment status`. To simplify my analysis, I converted `Car Access` into a binary variable (yes/no) and `Employment status` into a binary variable (full-time/other). There was one participant with "Not Sure" as their response for access to a vehicle, so they were removed from the data set. Participants that listed part-time or other employment status were combined into other employment status. 
 
+My dependent variable `total_rides` was created by summing the `rideshare days per month` and `public transportation days` per month variables.
 
-The final cleaned dataset contains `{python} num_rows`.participants. Model assumptions were checked in the [supplemental document](supplemental.qmd). 
+Finally, I dropped the variables in the data set that are not used in this analysis. The final cleaned dataset contains `{python} num_rows`.participant responses.
+
+Model assumptions were checked in the [supplemental document](supplemental.qmd). 
 
 ```{python}
 #| label: export_cleaned_data
@@ -191,7 +197,6 @@ desc_stats = desc_stats.reset_index(drop=True).set_index('Variable').drop(column
 desc_stats
 ```
 
-
 ```{python}
 #| label: fig-histograms
 #| fig-cap: "Histogram of Total Ride Days Per Month"
@@ -209,7 +214,6 @@ plt.xlabel('Total Ride Days per Month')
 
 plt.show()
 ```
-
 
 ```{python}
 #| label: fig-barplot
@@ -234,8 +238,6 @@ plt.show()
 ```
 
  ***I Cannot Figure Out How to rotate the bar labels in this graph and it is very frustration***
-
-
 
 ```{python}
 #| label: tbl-cross-tab
@@ -323,6 +325,13 @@ combined_tbl = combined_tbl.reset_index(drop = True)
 combined_tbl
 ```
 
+@tbl-describe_dataframe give general descriptive statistics of the numeric values of the data, with the mean Total Ride Days per Month equal to `{python} desc_stats.loc['Total Ride Days per Month', 'mean'].item()`.
+
+@fig-histograms shows the distribution of total ride days per month. This is a uniform distribution and should be noted. 
+
+@fig-barplot depicts the counts of participants by employment status and vehicle access and @tbl-cross-tab shows the actual value counts. It should be noted that there are missing values in the data, specifically for the `Car Access` variable, so that is the reason for the different total values. 
+
+@tbl-groupby shows the descriptive statistics of my dependent variable `total_rides` by employment status and vehicle access.
 
 ```{python}
 #| label: tbl-groupby
@@ -333,6 +342,13 @@ combined_tbl
 grouped = df.groupby(['Full-Time', 'Car Access'])['total_rides'].describe().drop(columns = ['25%', '50%', '75%']).round(2)
 grouped
 ```
+
+## Methods
+
+I conducted a 2x2 ANOVA to examine the effects of employment status and vehicle access on the total number of rides.
+
+
+# Results
 
 ```{python}
 #| label: model-create-python
@@ -381,18 +397,18 @@ param_table.index = ['Intercept', 'Full-Time', 'Car Access']
 param_table
 ```
 
-I need to change the variable names for theoparameter estimates table and then I will **REFER** to the values created in the tables above
+There is a significant main effect of `Full-Time` on `total_rides` ($F(`{python} int(anova_table.loc['Full-Time', 'df'].item())`, `{python} int(anova_table.loc[ 'Residual', 'df'].item())`) = `{python} anova_table.loc['Full-Time', 'F'].item()`$, $p < `{python} pvalues.iloc[1].item()`$), such that full-time employees have significantly more total ride days per month than other employees.
 
-@tbl-describe_dataframe give general descriptive statistics of the numeric values of the data. 
+There is a significant main effect of `Car Access` on `total_rides` ($F(`{python} int(anova_table.loc['Car Access', 'df'].item())`, `{python} int(anova_table.loc[ 'Residual', 'df'].item())`) = `{python} anova_table.loc['Car Access', 'F'].item()`$, $p < `{python} pvalues.iloc[2].item()`$), such that individuals with car access have significantly less total ride days per month than other employees. 
 
-@tbl-groupby shows the descriptive statistics of my dependent variable 'total_rides' by employment status and vehicle access.
+The parameter estimates refered to in @tbl-parameter-estimates are not interpretable due to converting total ride days per month from a categorical variable to a numerical variable. This is discussed in the limitations section (@sec-limitations).
+
 
 
 ```{python}
 #| label: fig-boxplot
 #| fig-cap: "Boxplot of total rides by employment status and vehicle access"
-#| fig-width: 8
-#| fig-height: 5
+
 
 #create a boxplot of total_rides by employment status and vehicle access
 sns.boxplot(data=df, x='Full-Time', y='total_rides', hue='Car Access')
@@ -405,13 +421,15 @@ plt.show()
 ```
 
 
+
+
 # Conclusion, Future Directions, & Limitations
 
 
 ## Future Directions
 Reviewing @fig-boxplot, there appears to be an outlier that is a full-time employee without access to a car with very low ride share and public transportation usage days. It would be interesting to further examine this outlier; however, it seems to be this person may walk to work or work from home. 
 
-## Limitations
+## Limitations {#sec-limitations}
 
 The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.
 

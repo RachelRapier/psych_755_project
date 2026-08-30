@@ -151,7 +151,6 @@ num_rows = df.shape[0]
 I created a new particpant ID as an index that was simplified from the original dataset. This was done to make the data easier to work with and to avoid issues with the long string of numbers in the original participant ID.
 
 I then dropped the columns in the data set that I was not using for my analysis.
-
 There were 2 participants that completed the survey in less than 30 seconds, so I dropped them from the dataset because their values would not be accurate.
 
 I converted the rideshare days per month and the public transportation days per month variables into numeric values (0-4) and renamed the columns to be more descriptive. One participant reported 'Not Sure' for acess to a vehicle, so I removed them from the data set. Employment status was simplified to a binary variable (full-time or other). I created my dependent variable `total_rides` by summing the `rideshare days per month` and `public transportation days` per month variables.
@@ -241,59 +240,170 @@ plt.show()
 ```{python}
 #| label: tbl-cross-tab
 #| tbl-cap: "Value Counts of Employment Status and Car Access"
-#| tbl-align: center
-#| layout-nrow: 1
 
+from IPython.display import display, HTML
 
-# Create a mapping of employment status values to human-readable descriptions
+# Employment table
 employment_descriptions = {
     'Full-Time': 'Full-Time Employment',
     'Other': 'Other Employment Status'
 }
 
-# Get the value counts
 employ_counts = df['Full-Time'].value_counts()
 
-# Create a DataFrame with the counts
 employ_tbl = pd.DataFrame({'count': employ_counts})
-
-# Add human-readable descriptions as a new column
 employ_tbl['Employment'] = employ_tbl.index.map(employment_descriptions)
-
-# Drop the existing index and set the new column as the index
 employ_tbl = employ_tbl.reset_index(drop=True).set_index('Employment')
-
-# Add total row
 employ_tbl.loc['Total'] = employ_tbl['count'].sum()
 
-# Create a mapping of car access values to human-readable descriptions
+
+# Vehicle access table
 VehicleAccess = {
     'Yes': 'Has Access to Vehicle',
     'No': 'No Access to Vehicle'
 }
 
-# Get the value counts
 car_counts = df['Car Access'].value_counts()
 
-# Create a DataFrame with the counts
 car_tbl = pd.DataFrame({'count': car_counts})
-
-# Add human-readable descriptions as a new column
 car_tbl['Vehicle Access'] = car_tbl.index.map(VehicleAccess)
-
-# Drop the existing index and set the new column as the index
 car_tbl = car_tbl.reset_index(drop=True).set_index('Vehicle Access')
-
-# Add total row
 car_tbl.loc['Total'] = car_tbl['count'].sum()
 
-display(car_tbl)
 
-display(employ_tbl)
+# Display side-by-side
+display(HTML(f"""
+<style>
+    .cross-tab-container {{
+        display: flex;
+        gap: 40px;
+        justify-content: center;
+        align-items: flex-start;
+    }}
+
+    .cross-tab {{
+        flex: 1;
+        max-width: 45%;
+    }}
+
+    .cross-tab table {{
+        width: 100%;
+        border-collapse: collapse;
+    }}
+
+    .cross-tab th,
+    .cross-tab td {{
+        padding: 6px 10px;
+        text-align: left;
+    }}
+
+    .cross-tab h4 {{
+        text-align: center;
+        margin-bottom: 10px;
+    }}
+</style>
+
+<div class="cross-tab-container">
+
+    <div class="cross-tab">
+        <h4>Employment Status</h4>
+        {employ_tbl.to_html()}
+    </div>
+
+    <div class="cross-tab">
+        <h4>Vehicle Access</h4>
+        {car_tbl.to_html()}
+    </div>
+
+</div>
+"""))
 ```
-***This table is frustrating me because I want some space between the 2 tables and I want them to be side by side***
 
-***Eventually I want @fig-barplot and these tables to be in a tab set of some sort so you can click on it, but its just not working***
+```{python}
+#| label: tbl-cross-tab2
+#| tbl-cap: "Value Counts of Employment Status and Car Access2"
+
+import pandas as pd
+from IPython.display import display
+
+# -----------------------------
+# Employment status
+# -----------------------------
+
+employment_descriptions = {
+    'Full-Time': 'Full-Time Employment',
+    'Other': 'Other Employment Status'
+}
+
+employ_counts = df['Full-Time'].value_counts()
+
+employ_tbl = pd.DataFrame({'count': employ_counts})
+
+employ_tbl['Employment'] = employ_tbl.index.map(
+    employment_descriptions
+)
+
+employ_tbl = (
+    employ_tbl
+    .reset_index(drop=True)
+    .set_index('Employment')
+)
+
+employ_tbl.loc['Total'] = employ_tbl['count'].sum()
+
+
+# -----------------------------
+# Vehicle access
+# -----------------------------
+
+VehicleAccess = {
+    'Yes': 'Has Access to Vehicle',
+    'No': 'No Access to Vehicle'
+}
+
+car_counts = df['Car Access'].value_counts()
+
+car_tbl = pd.DataFrame({'count': car_counts})
+
+car_tbl['Vehicle Access'] = car_tbl.index.map(
+    VehicleAccess
+)
+
+car_tbl = (
+    car_tbl
+    .reset_index(drop=True)
+    .set_index('Vehicle Access')
+)
+
+car_tbl.loc['Total'] = car_tbl['count'].sum()
+
+
+# -----------------------------
+# Combine the two tables
+# -----------------------------
+
+employ_tbl = employ_tbl.reset_index()
+car_tbl = car_tbl.reset_index()
+
+# Make the tables the same number of rows
+max_rows = max(len(employ_tbl), len(car_tbl))
+
+employ_tbl = employ_tbl.reindex(range(max_rows))
+car_tbl = car_tbl.reindex(range(max_rows))
+
+# Rename columns
+employ_tbl.columns = ['Employment Status', 'Count']
+car_tbl.columns = ['Vehicle Access', 'Count']
+
+# Combine side-by-side
+combined_tbl = pd.concat(
+    [employ_tbl, car_tbl],
+    axis=1
+)
+
+display(combined_tbl)
+```
+
 
 ```{python}
 #| label: tbl-groupby

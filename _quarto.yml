@@ -6,14 +6,23 @@ manuscript:
   
 
 format:
+   
   html:
     toc: true
-    number-sections: true
+    number-sections: true    
     code-fold: false
     code-overflow: wrap
     code-tools: true
   pdf:
     toc: true
+    code-overflow: wrap
+    header-includes:
+      - \usepackage{multirow}
+    include-in-header: 
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+
   docx:
     toc: true
 

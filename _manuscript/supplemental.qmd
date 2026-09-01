@@ -1,9 +1,39 @@
 ---
 title: "Supplemental Materials"
 author: "Rachel Rapier"
-date: "July 8, 2026"
+date: "August 27, 2026"
+
 ---
 
 # Supplemental Materials
 
-Add supplemental materials here.
+# Checking the model assumptions
+
+```{r}
+#| label: load-packages-data
+
+suppressPackageStartupMessages(library(tidyverse))
+
+df <- read_csv("cleaned_data.csv", show_col_types = FALSE)
+
+```
+
+
+```{r}
+#| label: model-create-r
+m <- lm(total_rides ~ `Full-Time` * `Car Access`, data = df)
+
+```
+
+```{r}
+#| label: fig-model-assumptions
+#| fig-cap: "Model assumptions check - Residuals vs Fitted, Normal Q-Q, Scale-Location, and Residuals vs Leverage plots"
+#| fig-width: 10
+#| fig-height: 8
+
+#make the figure 2x2
+par(mfrow = c(2, 2))
+
+plot(m)
+
+```

@@ -208,7 +208,7 @@ desc_stats
 # df_plot = df.drop(columns=['p_id'])
 
 # df_plot.hist(figsize=(8, 10))
-
+sns.set_context('paper')
 sns.histplot(data=df,x='total_rides', bins=8)
 plt.xlabel('Total Ride Days per Month')
 
@@ -411,17 +411,16 @@ The parameter estimates refered to in @tbl-parameter-estimates are not interpret
 
 
 #create a boxplot of total_rides by employment status and vehicle access
+sns.set_context('paper')
 sns.boxplot(data=df, x='Full-Time', y='total_rides', hue='Car Access')
 plt.title('Total Rides by Employment Status and Vehicle Access')
 plt.xlabel('Employment Status')
 plt.ylabel('Total Rides per Month')
 plt.legend(title='Vehicle Access', bbox_to_anchor=(1.05, 1), loc='upper left')
+
 plt.tight_layout()
 plt.show()
 ```
-
-
-
 
 # Conclusion, Future Directions, & Limitations
 

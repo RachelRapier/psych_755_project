@@ -388,7 +388,7 @@ window.Quarto = {
 Table&nbsp;1: Descriptive statistics for the cleaned dataset
 </figcaption>
 <div aria-describedby="tbl-describe_dataframe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="100">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 
 
@@ -458,7 +458,7 @@ Table&nbsp;1: Descriptive statistics for the cleaned dataset
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># df_plot = df.drop(columns=['p_id'])</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># df_plot.hist(figsize=(8, 10))</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>sns.set_context(<span class="st">'paper'</span>)</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>sns.histplot(data<span class="op">=</span>df,x<span class="op">=</span><span class="st">'total_rides'</span>, bins<span class="op">=</span><span class="dv">8</span>)</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Total Ride Days per Month'</span>)</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
@@ -470,7 +470,7 @@ Table&nbsp;1: Descriptive statistics for the cleaned dataset
 Figure&nbsp;1: Histogram of Total Ride Days Per Month
 </figcaption>
 <div aria-describedby="fig-histograms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="index_files/figure-html/fig-histograms-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Histogram of Total Ride Days Per Month"><img src="index_files/figure-html/fig-histograms-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="614" height="457"></a>
+<a href="index_files/figure-html/fig-histograms-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Histogram of Total Ride Days Per Month"><img src="index_files/figure-html/fig-histograms-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="584" height="430"></a>
 </div>
 </figure>
 </div>
@@ -496,7 +496,7 @@ Figure&nbsp;1: Histogram of Total Ride Days Per Month
 Figure&nbsp;2: Bar Plots of Employment Status and Vehicle Access
 </figcaption>
 <div aria-describedby="fig-barplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="index_files/figure-html/fig-barplot-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Bar Plots of Employment Status and Vehicle Access"><img src="index_files/figure-html/fig-barplot-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="599" height="532"></a>
+<a href="index_files/figure-html/fig-barplot-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Bar Plots of Employment Status and Vehicle Access"><img src="index_files/figure-html/fig-barplot-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="574" height="469"></a>
 </div>
 </figure>
 </div>
@@ -590,7 +590,7 @@ Figure&nbsp;2: Bar Plots of Employment Status and Vehicle Access
 Table&nbsp;2: Value Counts of Employment Status and Car Access
 </figcaption>
 <div aria-describedby="tbl-cross-tab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="103">
+<div class="cell-output cell-output-display" data-execution_count="9">
 <div>
 
 
@@ -648,7 +648,7 @@ Table&nbsp;2: Value Counts of Employment Status and Car Access
 Table&nbsp;3: Descriptive Statistics for Total Rides by Employment Status and Vehicle Access
 </figcaption>
 <div aria-describedby="tbl-groupby-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="104">
+<div class="cell-output cell-output-display" data-execution_count="10">
 <div>
 
 
@@ -747,7 +747,7 @@ Table&nbsp;3: Descriptive Statistics for Total Rides by Employment Status and Ve
 Table&nbsp;4: 2x2 ANOVA results for total rides by employment status and vehicle access
 </figcaption>
 <div aria-describedby="tbl-anova-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="106">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <div>
 
 
@@ -823,7 +823,7 @@ Table&nbsp;4: 2x2 ANOVA results for total rides by employment status and vehicle
 Table&nbsp;5: Parameter estimates for the ANOVA model
 </figcaption>
 <div aria-describedby="tbl-parameter-estimates-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="107">
+<div class="cell-output cell-output-display" data-execution_count="13">
 <div>
 
 
@@ -873,18 +873,20 @@ Table&nbsp;5: Parameter estimates for the ANOVA model
 <p>The parameter estimates refered to in <a href="#tbl-parameter-estimates" class="quarto-xref">Table&nbsp;5</a> are not interpretable due to converting total ride days per month from a categorical variable to a numerical variable. This is discussed in the limitations section (<a href="#sec-limitations" class="quarto-xref">Section&nbsp;4.2</a>).</p>
 <div id="cell-fig-boxplot" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a boxplot of total_rides by employment status and vehicle access</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sns.boxplot(data<span class="op">=</span>df, x<span class="op">=</span><span class="st">'Full-Time'</span>, y<span class="op">=</span><span class="st">'total_rides'</span>, hue<span class="op">=</span><span class="st">'Car Access'</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Total Rides by Employment Status and Vehicle Access'</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Employment Status'</span>)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Total Rides per Month'</span>)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Vehicle Access'</span>, bbox_to_anchor<span class="op">=</span>(<span class="fl">1.05</span>, <span class="dv">1</span>), loc<span class="op">=</span><span class="st">'upper left'</span>)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sns.set_context(<span class="st">'paper'</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>sns.boxplot(data<span class="op">=</span>df, x<span class="op">=</span><span class="st">'Full-Time'</span>, y<span class="op">=</span><span class="st">'total_rides'</span>, hue<span class="op">=</span><span class="st">'Car Access'</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Total Rides by Employment Status and Vehicle Access'</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Employment Status'</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Total Rides per Month'</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Vehicle Access'</span>, bbox_to_anchor<span class="op">=</span>(<span class="fl">1.05</span>, <span class="dv">1</span>), loc<span class="op">=</span><span class="st">'upper left'</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div id="fig-boxplot" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-boxplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="index_files/figure-html/fig-boxplot-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Boxplot of total rides by employment status and vehicle access"><img src="index_files/figure-html/fig-boxplot-output-1.png" width="725" height="447" class="figure-img"></a>
+<a href="index_files/figure-html/fig-boxplot-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Boxplot of total rides by employment status and vehicle access"><img src="index_files/figure-html/fig-boxplot-output-1.png" width="658" height="468" class="figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-boxplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Boxplot of total rides by employment status and vehicle access
@@ -1581,7 +1583,7 @@ Yang, Lin, J. Aaron Hipp, Deepti Adlakha, Christine M. Marx, Rachel G. Tabak, an
 <span id="cb15-222"><a href="#cb15-222" aria-hidden="true" tabindex="-1"></a><span class="co"># df_plot = df.drop(columns=['p_id'])</span></span>
 <span id="cb15-223"><a href="#cb15-223" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-224"><a href="#cb15-224" aria-hidden="true" tabindex="-1"></a><span class="co"># df_plot.hist(figsize=(8, 10))</span></span>
-<span id="cb15-225"><a href="#cb15-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-225"><a href="#cb15-225" aria-hidden="true" tabindex="-1"></a>sns.set_context(<span class="st">'paper'</span>)</span>
 <span id="cb15-226"><a href="#cb15-226" aria-hidden="true" tabindex="-1"></a>sns.histplot(data<span class="op">=</span>df,x<span class="op">=</span><span class="st">'total_rides'</span>, bins<span class="op">=</span><span class="dv">8</span>)</span>
 <span id="cb15-227"><a href="#cb15-227" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Total Ride Days per Month'</span>)</span>
 <span id="cb15-228"><a href="#cb15-228" aria-hidden="true" tabindex="-1"></a></span>
@@ -1784,36 +1786,35 @@ Yang, Lin, J. Aaron Hipp, Deepti Adlakha, Christine M. Marx, Rachel G. Tabak, an
 <span id="cb15-439"><a href="#cb15-439" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-440"><a href="#cb15-440" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-441"><a href="#cb15-441" aria-hidden="true" tabindex="-1"></a><span class="co">#create a boxplot of total_rides by employment status and vehicle access</span></span>
-<span id="cb15-442"><a href="#cb15-442" aria-hidden="true" tabindex="-1"></a>sns.boxplot(data<span class="op">=</span>df, x<span class="op">=</span><span class="st">'Full-Time'</span>, y<span class="op">=</span><span class="st">'total_rides'</span>, hue<span class="op">=</span><span class="st">'Car Access'</span>)</span>
-<span id="cb15-443"><a href="#cb15-443" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Total Rides by Employment Status and Vehicle Access'</span>)</span>
-<span id="cb15-444"><a href="#cb15-444" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Employment Status'</span>)</span>
-<span id="cb15-445"><a href="#cb15-445" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Total Rides per Month'</span>)</span>
-<span id="cb15-446"><a href="#cb15-446" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Vehicle Access'</span>, bbox_to_anchor<span class="op">=</span>(<span class="fl">1.05</span>, <span class="dv">1</span>), loc<span class="op">=</span><span class="st">'upper left'</span>)</span>
-<span id="cb15-447"><a href="#cb15-447" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb15-448"><a href="#cb15-448" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb15-449"><a href="#cb15-449" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb15-450"><a href="#cb15-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-451"><a href="#cb15-451" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-442"><a href="#cb15-442" aria-hidden="true" tabindex="-1"></a>sns.set_context(<span class="st">'paper'</span>)</span>
+<span id="cb15-443"><a href="#cb15-443" aria-hidden="true" tabindex="-1"></a>sns.boxplot(data<span class="op">=</span>df, x<span class="op">=</span><span class="st">'Full-Time'</span>, y<span class="op">=</span><span class="st">'total_rides'</span>, hue<span class="op">=</span><span class="st">'Car Access'</span>)</span>
+<span id="cb15-444"><a href="#cb15-444" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Total Rides by Employment Status and Vehicle Access'</span>)</span>
+<span id="cb15-445"><a href="#cb15-445" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Employment Status'</span>)</span>
+<span id="cb15-446"><a href="#cb15-446" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Total Rides per Month'</span>)</span>
+<span id="cb15-447"><a href="#cb15-447" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Vehicle Access'</span>, bbox_to_anchor<span class="op">=</span>(<span class="fl">1.05</span>, <span class="dv">1</span>), loc<span class="op">=</span><span class="st">'upper left'</span>)</span>
+<span id="cb15-448"><a href="#cb15-448" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-449"><a href="#cb15-449" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb15-450"><a href="#cb15-450" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb15-451"><a href="#cb15-451" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb15-452"><a href="#cb15-452" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-453"><a href="#cb15-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-454"><a href="#cb15-454" aria-hidden="true" tabindex="-1"></a><span class="fu"># Conclusion, Future Directions, &amp; Limitations</span></span>
+<span id="cb15-453"><a href="#cb15-453" aria-hidden="true" tabindex="-1"></a><span class="fu"># Conclusion, Future Directions, &amp; Limitations</span></span>
+<span id="cb15-454"><a href="#cb15-454" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-455"><a href="#cb15-455" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-456"><a href="#cb15-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-457"><a href="#cb15-457" aria-hidden="true" tabindex="-1"></a><span class="fu">## Future Directions</span></span>
-<span id="cb15-458"><a href="#cb15-458" aria-hidden="true" tabindex="-1"></a>Reviewing @fig-boxplot, there appears to be an outlier that is a full-time employee without access to a car with very low ride share and public transportation usage days. It would be interesting to further examine this outlier; however, it seems to be this person may walk to work or work from home. </span>
-<span id="cb15-459"><a href="#cb15-459" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-460"><a href="#cb15-460" aria-hidden="true" tabindex="-1"></a><span class="fu">## Limitations {#sec-limitations}</span></span>
-<span id="cb15-461"><a href="#cb15-461" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-462"><a href="#cb15-462" aria-hidden="true" tabindex="-1"></a>The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.</span>
-<span id="cb15-463"><a href="#cb15-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-464"><a href="#cb15-464" aria-hidden="true" tabindex="-1"></a>The values of <span class="in">`total_rides`</span> are calculated from categorical variables <span class="in">`ride_share_per_month`</span> and <span class="in">`public_trans_per_month`</span> that have unbalanced ranges: <span class="in">`{python} ', '.join(group2_mapping.keys())`</span>. Calculating <span class="in">`total_rides`</span> as the sum of these ranges means that the value could represent a different range of actual ride counts. For example: if a participant has a total ride value of 4, they could have 4 ride share days and 0 public transportation days, or 3 ride share days and 1 public transportation day (visa versa), and 2 ride share days and 1 public transportation day. But, when calculating the actual number of days per month, the result could be 8+, 4-9, or  4-8. Therefore, the parameter estimates displayed in @tbl-parameter-estimates are not informative values. </span>
-<span id="cb15-465"><a href="#cb15-465" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-466"><a href="#cb15-466" aria-hidden="true" tabindex="-1"></a>The main conclusion from this analysis is that there is</span>
+<span id="cb15-456"><a href="#cb15-456" aria-hidden="true" tabindex="-1"></a><span class="fu">## Future Directions</span></span>
+<span id="cb15-457"><a href="#cb15-457" aria-hidden="true" tabindex="-1"></a>Reviewing @fig-boxplot, there appears to be an outlier that is a full-time employee without access to a car with very low ride share and public transportation usage days. It would be interesting to further examine this outlier; however, it seems to be this person may walk to work or work from home. </span>
+<span id="cb15-458"><a href="#cb15-458" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-459"><a href="#cb15-459" aria-hidden="true" tabindex="-1"></a><span class="fu">## Limitations {#sec-limitations}</span></span>
+<span id="cb15-460"><a href="#cb15-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-461"><a href="#cb15-461" aria-hidden="true" tabindex="-1"></a>The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.</span>
+<span id="cb15-462"><a href="#cb15-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-463"><a href="#cb15-463" aria-hidden="true" tabindex="-1"></a>The values of <span class="in">`total_rides`</span> are calculated from categorical variables <span class="in">`ride_share_per_month`</span> and <span class="in">`public_trans_per_month`</span> that have unbalanced ranges: <span class="in">`{python} ', '.join(group2_mapping.keys())`</span>. Calculating <span class="in">`total_rides`</span> as the sum of these ranges means that the value could represent a different range of actual ride counts. For example: if a participant has a total ride value of 4, they could have 4 ride share days and 0 public transportation days, or 3 ride share days and 1 public transportation day (visa versa), and 2 ride share days and 1 public transportation day. But, when calculating the actual number of days per month, the result could be 8+, 4-9, or  4-8. Therefore, the parameter estimates displayed in @tbl-parameter-estimates are not informative values. </span>
+<span id="cb15-464"><a href="#cb15-464" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-465"><a href="#cb15-465" aria-hidden="true" tabindex="-1"></a>The main conclusion from this analysis is that there is</span>
+<span id="cb15-466"><a href="#cb15-466" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-467"><a href="#cb15-467" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-468"><a href="#cb15-468" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-469"><a href="#cb15-469" aria-hidden="true" tabindex="-1"></a>::: {#references}</span>
-<span id="cb15-470"><a href="#cb15-470" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-471"><a href="#cb15-471" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb15-468"><a href="#cb15-468" aria-hidden="true" tabindex="-1"></a>::: {#references}</span>
+<span id="cb15-469"><a href="#cb15-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-470"><a href="#cb15-470" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

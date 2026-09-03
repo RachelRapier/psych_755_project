@@ -19,9 +19,6 @@ Access to a vehicle greatly reduces the need for public transportation and rides
 
 A full-time employee that works from the office need to commute to the office 20-22 days per month, while part-time employees, contractors, and retirees will not need to commute as frequently. I hypothesize that full-time employed individuals will have higher transportation usage than those with other types of employment status whether or not they have access to a vehicle. The null hypothesis is that there is no difference in transportation usage between full-time employed individuals and those with other types of employment status. 
 
-I hypothesize that the effect of having access to a vehicle on total public transportation and rideshare days per month will be stronger for non-full-time employees. ***This is an interaction effect that I should look into more; currently not in the paper***
-
-
 
 # Data and Methods
 
@@ -152,13 +149,13 @@ num_rows = df.shape[0]
 
 ```
 
-Participant IDs from the original data set were long complicated strings of letters and numbers. I created a new simplified particpant ID as an index and removed the old long string column.
+Participant IDs from the original data set were long complicated strings of letters and numbers, so I created a new simplified particpant ID as an index and removed the old long string column.
 
 Following some EDA, I noticed 2 participants completed the survey in less than 30 seconds. That is an unreasonably short amount of time to answer all of the questions, so I removed those participants from the data set, as their responses will not be accurate. 
 
 Next I reviewed my independent variables `Car Access` and `Employment status`. To simplify my analysis, I converted `Car Access` into a binary variable (yes/no) and `Employment status` into a binary variable (full-time/other). There was one participant with "Not Sure" as their response for access to a vehicle, so they were removed from the data set. Participants that listed part-time or other employment status were combined into other employment status. 
 
-My dependent variable `total_rides` was created by summing the `rideshare days per month` and `public transportation days` per month variables.
+My dependent variable `total_rides` was created by converting the `rideshare_per_month` and `public_trans_per_month` variables from categorical to numeric and then summing the two variables.
 
 Finally, I dropped the variables in the data set that are not used in this analysis. The final cleaned dataset contains `{python} num_rows`.participant responses.
 
@@ -172,34 +169,11 @@ df.to_csv('cleaned_data.csv', index=False)
 ```
 
 ## Descriptive Statistics
-```{python}
-#| label: tbl-describe_dataframe
-#| tbl-cap: "Descriptive statistics for the cleaned dataset"
-# Check for any unreasonable values in the dataset
 
-# Create a mapping of variable names to human-readable descriptions
-variable_descriptions = {
-    'public_trans_per_month': 'Public Transportation Days per Month',
-    'rideshare_per_month': 'Rideshare Days per Month',
-    'total_rides': 'Total Ride Days per Month', 
-    'Age': 'Age'
-}
-
-# Get the descriptive statistics and transpose
-desc_stats = df.drop(columns = ['p_id']).describe().transpose().apply(lambda x: round(x, 2))
-
-# Add human-readable descriptions as a new column
-desc_stats['Variable'] = desc_stats.index.map(variable_descriptions)
-
-# Drop the existing index and set the new column as the index
-desc_stats = desc_stats.reset_index(drop=True).set_index('Variable').drop(columns = ['25%', '50%', '75%'])
-
-desc_stats
-```
 
 ```{python}
 #| label: fig-histograms
-#| fig-cap: "Histogram of Total Ride Days Per Month"
+#| fig-cap: "Total Ride Days"
 #| fig-align: center
 #| fig-cap-location: top
 
@@ -212,8 +186,34 @@ sns.set_context('paper')
 sns.histplot(data=df,x='total_rides', bins=8)
 plt.xlabel('Total Ride Days per Month')
 
-plt.show()
+display(plt.show())
 ```
+
+```{python}
+#| label: tbl-describe_dataframe
+#| tbl-cap: "Descriptive statistics for the cleaned dataset"
+# Check for any unreasonable values in the dataset
+
+# Create a mapping of variable names to human-readable descriptions
+variable_descriptions = {
+    'public_trans_per_month': 'Public Trans Use',
+    'rideshare_per_month': 'Rideshare Use',
+    'total_rides': 'Total Ride Use',
+    'Age': 'Age'
+}
+
+# Get the descriptive statistics and transpose
+desc_stats = df.drop(columns = ['p_id']).describe().transpose().apply(lambda x: round(x, 2))
+
+# Add human-readable descriptions as a new column
+desc_stats['Variable'] = desc_stats.index.map(variable_descriptions)
+
+# Drop the existing index and set the new column as the index
+desc_stats = desc_stats.reset_index(drop=True).set_index('Variable').drop(columns = ['25%', '50%', '75%'])
+
+display(desc_stats)
+```
+
 
 ```{python}
 #| label: fig-barplot
@@ -237,14 +237,11 @@ plt.show()
 
 ```
 
- ***I Cannot Figure Out How to rotate the bar labels in this graph and it is very frustration***
+
 
 ```{python}
 #| label: tbl-cross-tab
 #| tbl-cap: "Value Counts of Employment Status and Car Access"
-
-import pandas as pd
-from IPython.display import display
 
 # -----------------------------
 # Employment status
@@ -325,14 +322,6 @@ combined_tbl = combined_tbl.reset_index(drop = True)
 combined_tbl
 ```
 
-@tbl-describe_dataframe give general descriptive statistics of the numeric values of the data, with the mean Total Ride Days per Month equal to `{python} desc_stats.loc['Total Ride Days per Month', 'mean'].item()`.
-
-@fig-histograms shows the distribution of total ride days per month. This is a uniform distribution and should be noted. 
-
-@fig-barplot depicts the counts of participants by employment status and vehicle access and @tbl-cross-tab shows the actual value counts. It should be noted that there are missing values in the data, specifically for the `Car Access` variable, so that is the reason for the different total values. 
-
-@tbl-groupby shows the descriptive statistics of my dependent variable `total_rides` by employment status and vehicle access.
-
 ```{python}
 #| label: tbl-groupby
 #| tbl-cap: "Descriptive Statistics for Total Rides by Employment Status and Vehicle Access"
@@ -342,6 +331,16 @@ combined_tbl
 grouped = df.groupby(['Full-Time', 'Car Access'])['total_rides'].describe().drop(columns = ['25%', '50%', '75%']).round(2)
 grouped
 ```
+
+@tbl-describe_dataframe give general descriptive statistics of the numeric values of the data, with the mean Total Ride Days per Month equal to `{python} desc_stats.loc['Total Ride Use', 'mean'].item()`.
+
+@fig-histograms shows the distribution of total ride days per month. This is a uniform distribution and should be noted. 
+
+@fig-barplot depicts the counts of participants by employment status and vehicle access and @tbl-cross-tab shows the actual value counts. It should be noted that there are missing values in the data, specifically for the `Car Access` variable, so that is the reason for the different total values. 
+
+@tbl-groupby shows the descriptive statistics of my dependent variable `total_rides` by employment status and vehicle access.
+
+
 
 ## Methods
 
@@ -397,14 +396,6 @@ param_table.index = ['Intercept', 'Full-Time', 'Car Access']
 param_table
 ```
 
-There is a significant main effect of `Full-Time` on `total_rides` ($F(`{python} int(anova_table.loc['Full-Time', 'df'].item())`, `{python} int(anova_table.loc[ 'Residual', 'df'].item())`) = `{python} anova_table.loc['Full-Time', 'F'].item()`$, $p < `{python} pvalues.iloc[1].item()`$), such that full-time employees have significantly more total ride days per month than other employees.
-
-There is a significant main effect of `Car Access` on `total_rides` ($F(`{python} int(anova_table.loc['Car Access', 'df'].item())`, `{python} int(anova_table.loc[ 'Residual', 'df'].item())`) = `{python} anova_table.loc['Car Access', 'F'].item()`$, $p < `{python} pvalues.iloc[2].item()`$), such that individuals with car access have significantly less total ride days per month than other employees. 
-
-The parameter estimates refered to in @tbl-parameter-estimates are not interpretable due to converting total ride days per month from a categorical variable to a numerical variable. This is discussed in the limitations section (@sec-limitations).
-
-
-
 ```{python}
 #| label: fig-boxplot
 #| fig-cap: "Boxplot of total rides by employment status and vehicle access"
@@ -415,26 +406,39 @@ sns.set_context('paper')
 sns.boxplot(data=df, x='Full-Time', y='total_rides', hue='Car Access')
 plt.title('Total Rides by Employment Status and Vehicle Access')
 plt.xlabel('Employment Status')
-plt.ylabel('Total Rides per Month')
+plt.ylabel('Total Ride Use')
 plt.legend(title='Vehicle Access', bbox_to_anchor=(1.05, 1), loc='upper left')
 
 plt.tight_layout()
 plt.show()
 ```
 
+There is a significant main effect of `Full-Time` on `total_rides` ($F(`{python} int(anova_table.loc['Full-Time', 'df'].item())`, `{python} int(anova_table.loc[ 'Residual', 'df'].item())`) = `{python} anova_table.loc['Full-Time', 'F'].item()`$, $p < `{python} pvalues.iloc[1].item()`$), such that full-time employees have significantly more total ride days per month than other employees.
+
+There is a significant main effect of `Car Access` on `total_rides` ($F(`{python} int(anova_table.loc['Car Access', 'df'].item())`, `{python} int(anova_table.loc[ 'Residual', 'df'].item())`) = `{python} anova_table.loc['Car Access', 'F'].item()`$, $p < `{python} pvalues.iloc[2].item()`$), such that individuals with car access have significantly less total ride days per month than other employees. 
+
+Results are also depicted visually in @fig-boxplot.
+
+The parameter estimates refered to in @tbl-parameter-estimates are not interpretable due to converting total ride days per month from a categorical variable to a numerical variable. This is discussed in the limitations section (@sec-limitations).
+
+
 # Conclusion, Future Directions, & Limitations
+
+Full Time employees have significantly more total ride days per month than other employees, and individuals with car access have significantly less total ride days per month than other employees(@fig-boxplot).
 
 
 ## Future Directions
+
 Reviewing @fig-boxplot, there appears to be an outlier that is a full-time employee without access to a car with very low ride share and public transportation usage days. It would be interesting to further examine this outlier; however, it seems to be this person may walk to work or work from home. 
+
+Additional analysis should be done to examine if there is a significant effect of Full-time employment status on total ride days per month, such that the effect of car access on total rides per month is different for full-time employees versus part-time employees. This is a simple interaction effect that could be tested.
 
 ## Limitations {#sec-limitations}
 
-The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test.
+The distributions of the variables(@fig-barplot, @fig-histograms) are not normal, which may impact the results of the ANOVA test. Additionally, the data groups are unbalanced, as seen in @tbl-groupby, which may also impact the results of the ANOVA test. 
 
 The values of `total_rides` are calculated from categorical variables `ride_share_per_month` and `public_trans_per_month` that have unbalanced ranges: `{python} ', '.join(group2_mapping.keys())`. Calculating `total_rides` as the sum of these ranges means that the value could represent a different range of actual ride counts. For example: if a participant has a total ride value of 4, they could have 4 ride share days and 0 public transportation days, or 3 ride share days and 1 public transportation day (visa versa), and 2 ride share days and 1 public transportation day. But, when calculating the actual number of days per month, the result could be 8+, 4-9, or  4-8. Therefore, the parameter estimates displayed in @tbl-parameter-estimates are not informative values. 
 
-The main conclusion from this analysis is that there is
 
 
 ::: {#references}
